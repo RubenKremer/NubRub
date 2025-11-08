@@ -33,33 +33,33 @@
 
   <ItemGroup>
     <!-- Audio pack files - squeak pack -->
-    <EmbeddedResource Include="Resources\sounds\squeak-1.wav" Condition="Exists('Resources\sounds\squeak-1.wav')" />
-    <EmbeddedResource Include="Resources\sounds\squeak-2.wav" Condition="Exists('Resources\sounds\squeak-2.wav')" />
-    <EmbeddedResource Include="Resources\sounds\squeak-3.wav" Condition="Exists('Resources\sounds\squeak-3.wav')" />
-    <EmbeddedResource Include="Resources\sounds\squeak-4.wav" Condition="Exists('Resources\sounds\squeak-4.wav')" />
-    <EmbeddedResource Include="Resources\sounds\squeak-5.wav" Condition="Exists('Resources\sounds\squeak-5.wav')" />
-    <EmbeddedResource Include="Resources\sounds\squeak-trigger.wav" Condition="Exists('Resources\sounds\squeak-trigger.wav')" />
+    <EmbeddedResource Include="Resources\sounds\squeak\squeak-1.wav" Condition="Exists('Resources\sounds\squeak\squeak-1.wav')" />
+    <EmbeddedResource Include="Resources\sounds\squeak\squeak-2.wav" Condition="Exists('Resources\sounds\squeak\squeak-2.wav')" />
+    <EmbeddedResource Include="Resources\sounds\squeak\squeak-3.wav" Condition="Exists('Resources\sounds\squeak\squeak-3.wav')" />
+    <EmbeddedResource Include="Resources\sounds\squeak\squeak-4.wav" Condition="Exists('Resources\sounds\squeak\squeak-4.wav')" />
+    <EmbeddedResource Include="Resources\sounds\squeak\squeak-5.wav" Condition="Exists('Resources\sounds\squeak\squeak-5.wav')" />
+    <EmbeddedResource Include="Resources\sounds\squeak\squeak-trigger.wav" Condition="Exists('Resources\sounds\squeak\squeak-trigger.wav')" />
     <!-- Audio pack files - nsfw pack -->
-    <EmbeddedResource Include="Resources\sounds\nsfw-1.wav" Condition="Exists('Resources\sounds\nsfw-1.wav')" />
-    <EmbeddedResource Include="Resources\sounds\nsfw-2.wav" Condition="Exists('Resources\sounds\nsfw-2.wav')" />
-    <EmbeddedResource Include="Resources\sounds\nsfw-3.wav" Condition="Exists('Resources\sounds\nsfw-3.wav')" />
-    <EmbeddedResource Include="Resources\sounds\nsfw-4.wav" Condition="Exists('Resources\sounds\nsfw-4.wav')" />
-    <EmbeddedResource Include="Resources\sounds\nsfw-5.wav" Condition="Exists('Resources\sounds\nsfw-5.wav')" />
-    <EmbeddedResource Include="Resources\sounds\nsfw-trigger.wav" Condition="Exists('Resources\sounds\nsfw-trigger.wav')" />
+    <EmbeddedResource Include="Resources\sounds\nsfw\nsfw-1.wav" Condition="Exists('Resources\sounds\nsfw\nsfw-1.wav')" />
+    <EmbeddedResource Include="Resources\sounds\nsfw\nsfw-2.wav" Condition="Exists('Resources\sounds\nsfw\nsfw-2.wav')" />
+    <EmbeddedResource Include="Resources\sounds\nsfw\nsfw-3.wav" Condition="Exists('Resources\sounds\nsfw\nsfw-3.wav')" />
+    <EmbeddedResource Include="Resources\sounds\nsfw\nsfw-4.wav" Condition="Exists('Resources\sounds\nsfw\nsfw-4.wav')" />
+    <EmbeddedResource Include="Resources\sounds\nsfw\nsfw-5.wav" Condition="Exists('Resources\sounds\nsfw\nsfw-5.wav')" />
+    <EmbeddedResource Include="Resources\sounds\nsfw\nsfw-trigger.wav" Condition="Exists('Resources\sounds\nsfw\nsfw-trigger.wav')" />
     <!-- Audio pack files - bugs pack -->
-    <EmbeddedResource Include="Resources\sounds\bugs-1.wav" Condition="Exists('Resources\sounds\bugs-1.wav')" />
-    <EmbeddedResource Include="Resources\sounds\bugs-2.wav" Condition="Exists('Resources\sounds\bugs-2.wav')" />
-    <EmbeddedResource Include="Resources\sounds\bugs-3.wav" Condition="Exists('Resources\sounds\bugs-3.wav')" />
-    <EmbeddedResource Include="Resources\sounds\bugs-4.wav" Condition="Exists('Resources\sounds\bugs-4.wav')" />
-    <EmbeddedResource Include="Resources\sounds\bugs-5.wav" Condition="Exists('Resources\sounds\bugs-5.wav')" />
-    <EmbeddedResource Include="Resources\sounds\bugs-trigger.wav" Condition="Exists('Resources\sounds\bugs-trigger.wav')" />
+    <EmbeddedResource Include="Resources\sounds\bugs\bugs-1.wav" Condition="Exists('Resources\sounds\bugs\bugs-1.wav')" />
+    <EmbeddedResource Include="Resources\sounds\bugs\bugs-2.wav" Condition="Exists('Resources\sounds\bugs\bugs-2.wav')" />
+    <EmbeddedResource Include="Resources\sounds\bugs\bugs-3.wav" Condition="Exists('Resources\sounds\bugs\bugs-3.wav')" />
+    <EmbeddedResource Include="Resources\sounds\bugs\bugs-4.wav" Condition="Exists('Resources\sounds\bugs\bugs-4.wav')" />
+    <EmbeddedResource Include="Resources\sounds\bugs\bugs-5.wav" Condition="Exists('Resources\sounds\bugs\bugs-5.wav')" />
+    <EmbeddedResource Include="Resources\sounds\bugs\bugs-trigger.wav" Condition="Exists('Resources\sounds\bugs\bugs-trigger.wav')" />
     <!-- Audio pack files - glass pack -->
-    <EmbeddedResource Include="Resources\sounds\glass-1.wav" Condition="Exists('Resources\sounds\glass-1.wav')" />
-    <EmbeddedResource Include="Resources\sounds\glass-2.wav" Condition="Exists('Resources\sounds\glass-2.wav')" />
-    <EmbeddedResource Include="Resources\sounds\glass-3.wav" Condition="Exists('Resources\sounds\glass-3.wav')" />
-    <EmbeddedResource Include="Resources\sounds\glass-4.wav" Condition="Exists('Resources\sounds\glass-4.wav')" />
-    <EmbeddedResource Include="Resources\sounds\glass-5.wav" Condition="Exists('Resources\sounds\glass-5.wav')" />
-    <EmbeddedResource Include="Resources\sounds\glass-trigger.wav" Condition="Exists('Resources\sounds\glass-trigger.wav')" />
+    <EmbeddedResource Include="Resources\sounds\glass\glass-1.wav" Condition="Exists('Resources\sounds\glass\glass-1.wav')" />
+    <EmbeddedResource Include="Resources\sounds\glass\glass-2.wav" Condition="Exists('Resources\sounds\glass\glass-2.wav')" />
+    <EmbeddedResource Include="Resources\sounds\glass\glass-3.wav" Condition="Exists('Resources\sounds\glass\glass-3.wav')" />
+    <EmbeddedResource Include="Resources\sounds\glass\glass-4.wav" Condition="Exists('Resources\sounds\glass\glass-4.wav')" />
+    <EmbeddedResource Include="Resources\sounds\glass\glass-5.wav" Condition="Exists('Resources\sounds\glass\glass-5.wav')" />
+    <EmbeddedResource Include="Resources\sounds\glass\glass-trigger.wav" Condition="Exists('Resources\sounds\glass\glass-trigger.wav')" />
     <!-- Icon files are optional - add trayicon.ico or trayicon.png to Resources\icons folder if you want a custom tray icon -->
     <EmbeddedResource Include="Resources\icons\trayicon.ico" Condition="Exists('Resources\icons\trayicon.ico')" />
     <EmbeddedResource Include="Resources\icons\trayicon.png" Condition="Exists('Resources\icons\trayicon.png')" />
