@@ -81,11 +81,10 @@ AudioPacks/
 
 ## Using Custom Audio Packs
 
-1. **Create your pack** following the structure above
-2. **Restart NubRub** (or open Settings)
-3. **Open Settings** from the tray icon menu
-4. **Select your pack** from the "Audio Pack" dropdown
-5. **Save** your settings
+1. **Create your pack** following the structure above in `%LOCALAPPDATA%\NubRub\AudioPacks\`
+2. **Open Settings** by left-clicking the tray icon or right-clicking → **Settings...**
+3. **Select your pack** from the "Audio Pack" dropdown
+4. Click **Save** to apply your settings
 
 Custom packs will appear in the dropdown with their name and version (e.g., "My Custom Pack (1.0)").
 

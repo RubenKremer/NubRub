@@ -50,21 +50,24 @@ See `installer/README.md` for detailed instructions.
 ## Usage
 
 1. Launch the application - it starts minimized in the system tray
-2. Right-click the tray icon → **Select HID Device...**
-3. Choose your TrackPoint from the list and click **Save**
-4. Move the TrackPoint - you should hear the squeak
-5. Wiggle the TrackPoint continuously for 25 seconds to trigger the sound
+2. Left-click the tray icon (or right-click → **Settings...**) to open the configuration panel
+3. Select your TrackPoint from the device dropdown (or use **Auto-detect**)
+4. Choose an audio pack and adjust settings as needed
+5. Click **Save** to apply your settings
+6. Move the TrackPoint - you should hear the sound
+7. Wiggle the TrackPoint continuously for 25 seconds to trigger the sound
 
 ## Configuration
 
 Configuration is stored in `%LOCALAPPDATA%/NubRub/config.json`
 
 Settings include:
-- Selected device
-- Audio volume (0-100%)
-- Idle cutoff time (ms)
-- Only on movement (ignore button events)
-- Start with Windows
+- **Selected device**: Choose your TrackPoint from the dropdown or use Auto-detect
+- **Audio pack**: Select from built-in packs (squeak, nsfw, bugs, glass) or custom packs
+- **Audio volume**: 0-100% slider
+- **Idle cutoff time**: Milliseconds of inactivity before stopping sound (default: 250ms)
+- **Only on movement**: Ignore button events, only react to movement
+- **Start with Windows**: Automatically launch on system startup
 
 ## Audio Files
 
