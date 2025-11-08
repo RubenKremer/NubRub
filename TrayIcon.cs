@@ -13,6 +13,7 @@ public class TrayIcon : IDisposable
     public event EventHandler? ConfigPanelRequested;
     public event EventHandler? DebugWindowRequested;
     public event EventHandler<bool>? StartWithWindowsToggled;
+    public event EventHandler? UpdateCheckRequested;
     public event EventHandler? ExitRequested;
 
     private double _volume = 0.6;
@@ -89,6 +90,14 @@ public class TrayIcon : IDisposable
             StartWithWindowsToggled?.Invoke(this, _startWithWindows);
         });
         _contextMenu.Items.Add(_startWithWindowsItem);
+
+        _contextMenu.Items.Add(new ToolStripSeparator());
+
+        var updateCheckItem = new ToolStripMenuItem("Check for updates", null, (s, e) =>
+        {
+            UpdateCheckRequested?.Invoke(this, EventArgs.Empty);
+        });
+        _contextMenu.Items.Add(updateCheckItem);
 
         _contextMenu.Items.Add(new ToolStripSeparator());
 

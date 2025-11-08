@@ -113,6 +113,7 @@ static class Program
             _trayIcon.ConfigPanelRequested += OnConfigPanelRequested;
             _trayIcon.DebugWindowRequested += OnDebugWindowRequested;
             _trayIcon.StartWithWindowsToggled += OnStartWithWindowsToggled;
+            _trayIcon.UpdateCheckRequested += OnUpdateCheckRequested;
             _trayIcon.ExitRequested += OnExitRequested;
 
             // Try to match saved device
@@ -664,6 +665,182 @@ static class Program
         catch
         {
             // Silently fail on registry errors
+        }
+    }
+
+    private static void OnUpdateCheckRequested(object? sender, EventArgs e)
+    {
+        // Ensure we're on the UI thread
+        if (_mainForm != null && _mainForm.InvokeRequired)
+        {
+            _mainForm.Invoke(new Action<object?, EventArgs>(OnUpdateCheckRequested), sender, e);
+            return;
+        }
+
+        _ = CheckForUpdatesAsync();
+    }
+
+    private static async Task CheckForUpdatesAsync()
+    {
+        UpdateChecker? updateChecker = null;
+        UpdateProgressDialog? progressDialog = null;
+
+        try
+        {
+            updateChecker = new UpdateChecker();
+            progressDialog = new UpdateProgressDialog();
+            
+            // Show progress dialog
+            progressDialog.Show();
+            Application.DoEvents();
+
+            // Check for updates
+            var progress = new Progress<string>(status => progressDialog.SetStatus(status));
+            var updateInfo = await updateChecker.CheckForUpdatesAsync(progress);
+
+            if (progressDialog.Cancelled)
+            {
+                progressDialog.Close();
+                return;
+            }
+
+            if (updateInfo == null)
+            {
+                var lastStatus = progressDialog.LastStatus;
+                progressDialog.Close();
+                
+                var errorMessage = "Failed to check for updates.";
+                if (!string.IsNullOrEmpty(lastStatus) && lastStatus.StartsWith("Error:", StringComparison.OrdinalIgnoreCase))
+                {
+                    errorMessage = lastStatus;
+                }
+                else if (!string.IsNullOrEmpty(lastStatus) && lastStatus.Contains("Network error", StringComparison.OrdinalIgnoreCase))
+                {
+                    errorMessage = lastStatus;
+                }
+                else if (!string.IsNullOrEmpty(lastStatus) && lastStatus.Contains("timed out", StringComparison.OrdinalIgnoreCase))
+                {
+                    errorMessage = lastStatus;
+                }
+                else
+                {
+                    errorMessage = "Failed to check for updates. Please check your internet connection and try again.";
+                }
+                
+                MessageBox.Show(
+                    errorMessage,
+                    "NubRub - Update Check Failed",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!updateInfo.IsUpdateAvailable)
+            {
+                progressDialog.Close();
+                MessageBox.Show(
+                    "You're already on the latest version!",
+                    "NubRub - No Updates Available",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            // Update available - ask for confirmation
+            progressDialog.Close();
+            var result = MessageBox.Show(
+                $"A new version ({updateInfo.LatestVersion}) is available.\n\nCurrent version: {updateInfo.CurrentVersion}\n\nDownload and install now?",
+                "NubRub - Update Available",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            // Download the installer
+            progressDialog = new UpdateProgressDialog();
+            progressDialog.SetStatus("Downloading update...");
+            progressDialog.Show();
+            Application.DoEvents();
+
+            var downloadProgress = new Progress<(long bytesDownloaded, long totalBytes)>(progress =>
+            {
+                progressDialog.SetProgress(progress.bytesDownloaded, progress.totalBytes);
+            });
+
+            string installerPath;
+            try
+            {
+                installerPath = await updateChecker.DownloadInstallerAsync(updateInfo.DownloadUrl, downloadProgress);
+            }
+            catch (Exception ex)
+            {
+                progressDialog.Close();
+                MessageBox.Show(
+                    $"Failed to download update:\n\n{ex.Message}",
+                    "NubRub - Download Failed",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+
+            if (progressDialog.Cancelled)
+            {
+                progressDialog.Close();
+                // Clean up downloaded file
+                try
+                {
+                    if (File.Exists(installerPath))
+                    {
+                        File.Delete(installerPath);
+                    }
+                }
+                catch { }
+                return;
+            }
+
+            progressDialog.Close();
+
+            // Launch the installer
+            try
+            {
+                var processStartInfo = new ProcessStartInfo
+                {
+                    FileName = installerPath,
+                    UseShellExecute = true,
+                    Verb = "runas" // Request elevation for MSI installer
+                };
+                Process.Start(processStartInfo);
+                
+                // Exit the application so the installer can update it
+                _debugWindow?.Log("Update installer launched. Application will exit.");
+                Application.Exit();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to launch installer:\n\n{ex.Message}\n\nInstaller downloaded to:\n{installerPath}",
+                    "NubRub - Installer Launch Failed",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            progressDialog?.Close();
+            _debugWindow?.Log($"Error during update check: {ex.Message}");
+            MessageBox.Show(
+                $"An error occurred while checking for updates:\n\n{ex.Message}",
+                "NubRub - Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+        }
+        finally
+        {
+            updateChecker?.Dispose();
+            progressDialog?.Dispose();
         }
     }
 

@@ -62,7 +62,7 @@ public partial class ConfigPanel : Form
         _deviceComboBox = new ComboBox
         {
             Location = new Point(10, y),
-            Width = 380, // Reduced width to make room for button
+            Width = 340, // Reduced width to make room for button
             DropDownStyle = ComboBoxStyle.DropDownList,
             DisplayMember = "DisplayName"
         };
@@ -71,8 +71,8 @@ public partial class ConfigPanel : Form
         _autoDetectButton = new Button
         {
             Text = "Auto-detect",
-            Location = new Point(400, y),
-            Width = 70,
+            Location = new Point(360, y),
+            Width = 110,
             Height = 23, // Match combo box height
             UseVisualStyleBackColor = true
         };
@@ -93,7 +93,7 @@ public partial class ConfigPanel : Form
         _audioPackComboBox = new ComboBox
         {
             Location = new Point(10, y),
-            Width = 380, // Reduced width to make room for button
+            Width = 340, // Reduced width to make room for button
             DropDownStyle = ComboBoxStyle.DropDownList
         };
         this.Controls.Add(_audioPackComboBox);
@@ -101,8 +101,8 @@ public partial class ConfigPanel : Form
         _openAudioPacksFolderButton = new Button
         {
             Text = "Open Folder",
-            Location = new Point(400, y),
-            Width = 70,
+            Location = new Point(360, y),
+            Width = 110,
             Height = 23, // Match combo box height
             UseVisualStyleBackColor = true
         };
