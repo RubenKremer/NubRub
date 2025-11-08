@@ -68,9 +68,5 @@ Settings include:
 
 ## Audio Files
 
-The application includes placeholder WAV files (`squeak.wav` and `trigger.wav`). These are silent by default. Replace them with your own audio files in the `Resources` folder and rebuild to use custom sounds.
-
-## License
-
-TBD
+The application includes built-in audio packs. Custom audio packs can be added to `%LOCALAPPDATA%\NubRub\AudioPacks\`. See `CUSTOM_AUDIO_PACKS.md` for details.
 

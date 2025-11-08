@@ -119,9 +119,8 @@ See `SECURITY.md` for detailed security information.
 
 ## Tips
 
-1. **Test your pack**: Create a simple pack with 1-2 sounds first to verify it works
-2. **File naming**: Use simple, descriptive names (avoid special characters)
-3. **Audio quality**: Use reasonable quality settings (16-bit, 44.1kHz is recommended)
-4. **File size**: Keep files reasonably sized for better performance
-5. **Variety**: Include multiple rub sounds for better variety during movement
+- Test with 1-2 sounds first to verify it works
+- Use simple, descriptive file names
+- Recommended: 16-bit, 44.1kHz audio quality
+- Include multiple rub sounds for variety
 

@@ -52,7 +52,7 @@ A compact dialog with:
 - **Volume** slider.
 - **Save** / **Cancel**.
 
-> The selection persists in a JSON config file in `%LOCALAPPDATA%/TrackPointSqueak/config.json` (path may be adjusted during implementation).
+> The selection persists in a JSON config file in `%LOCALAPPDATA%/NubRub/config.json`.
 
 ---
 
@@ -120,63 +120,8 @@ A compact dialog with:
 
 ---
 
-## Roadmap (Optional Enhancements)
-- **Profiles** per device (different sounds or volumes).
-- **Per‑app rules** (mute during meetings/recording).
-- **Built‑in sample editor** and custom sound packs.
-- **Automatic TrackPoint detection** heuristics.
-
----
-
-## Build Notes (Reference Implementation)
-
-### Option A — C# (.NET 8)
-- UI: WinUI 3 or WinForms/WPF + tray icon.
-- Raw Input: P/Invoke for `RegisterRawInputDevices`, `GetRawInputDeviceInfo`, `GetRawInputData`.
-- HID details: P/Invoke `hid.dll` for `HidD_*` calls.
-- Audio: NAudio (WASAPI) for low‑latency looped playback.
-- Packaging: Publish **single‑file** self‑contained `win‑x64`.
-
-### Option B — C++/Win32
-- Pure Win32 message loop + tray icon.
-- Raw Input and HID via Windows headers.
-- Audio via XAudio2 or WASAPI.
-- Packaging via CMake + WiX/MSIX if desired.
-
----
-
-## Configuration File (proposed)
-```jsonc
-{
-  "SelectedDevice": {
-    "DevicePath": "\\\\?\\HID#VID_17EF&PID_60EE&...",
-    "VendorId": 6127,
-    "ProductId": 24814,
-    "Manufacturer": "Lenovo",
-    "Product": "TrackPoint",
-    "LastSeen": "2025-11-07T10:15:30Z"
-  },
-  "Audio": {
-    "Volume": 0.6,
-    "IdleCutoffMs": 250,
-    "OnlyOnMovement": true,
-    "SoundFile": "squeak.wav"
-  },
-  "Startup": {
-    "RunAtLogin": true
-  }
-}
-```
-
----
-
 ## Troubleshooting
 - **No sound**: Verify the correct device is selected; click **Test Squeak**. Check system output device/volume.
-- **Sound triggers from touchpad**: Re‑select the TrackPoint; ensure the chosen device is the stick, not the touchpad. Consider enabling **Only on Movement** if button events cause confusion.
+- **Sound triggers from touchpad**: Re‑select the TrackPoint; ensure the chosen device is the stick, not the touchpad.
 - **After docking/undocking**: If the squeak stops, open the picker; the device path may have changed—re‑select or let the app auto‑rebind.
-
----
-
-## License
-TBD.
 
