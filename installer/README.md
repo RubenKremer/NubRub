@@ -73,7 +73,7 @@ Automates the build process for WiX:
 ### Custom Icons and Images
 - **Banner**: 55x55 pixels (WiX)
 - **Dialog**: 164x314 pixels (WiX)
-- **App Icon**: Already configured from `Resources\appicon.ico`
+- **App Icon**: Already configured from `Resources\icons\appicon.ico`
 
 ---
 

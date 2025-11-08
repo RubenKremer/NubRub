@@ -117,14 +117,14 @@ public class TrayIcon : IDisposable
             var assembly = Assembly.GetExecutingAssembly();
             
             // Try to load ICO file first
-            var icoStream = assembly.GetManifestResourceStream("NubRub.Resources.trayicon.ico");
+            var icoStream = assembly.GetManifestResourceStream("NubRub.Resources.icons.trayicon.ico");
             if (icoStream != null)
             {
                 return new Icon(icoStream);
             }
             
             // Try to load PNG and convert to Icon
-            var pngStream = assembly.GetManifestResourceStream("NubRub.Resources.trayicon.png");
+            var pngStream = assembly.GetManifestResourceStream("NubRub.Resources.icons.trayicon.png");
             if (pngStream != null)
             {
                 using (var bitmap = new Bitmap(pngStream))

@@ -133,7 +133,7 @@ public class AudioPlayer : IDisposable
             // Load squeak sounds (1-5) from embedded resources
             for (int i = 1; i <= 5; i++)
             {
-                string resourceName = $"NubRub.Resources.{packPrefix}-{i}.wav";
+                string resourceName = $"NubRub.Resources.sounds.{packPrefix}-{i}.wav";
                 var squeakResource = assembly.GetManifestResourceStream(resourceName);
                 if (squeakResource != null)
                 {
@@ -150,7 +150,7 @@ public class AudioPlayer : IDisposable
             }
 
             // Load trigger sound from embedded resources
-            string triggerResourceName = $"NubRub.Resources.{packPrefix}-trigger.wav";
+            string triggerResourceName = $"NubRub.Resources.sounds.{packPrefix}-trigger.wav";
             var triggerResource = assembly.GetManifestResourceStream(triggerResourceName);
             if (triggerResource != null)
             {

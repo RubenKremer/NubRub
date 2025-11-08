@@ -39,14 +39,14 @@ public partial class MainForm : Form
             var assembly = Assembly.GetExecutingAssembly();
             
             // Try to load ICO file first
-            var icoStream = assembly.GetManifestResourceStream("NubRub.Resources.appicon.ico");
+            var icoStream = assembly.GetManifestResourceStream("NubRub.Resources.icons.appicon.ico");
             if (icoStream != null)
             {
                 return new Icon(icoStream);
             }
             
             // Try to load PNG and convert to Icon
-            var pngStream = assembly.GetManifestResourceStream("NubRub.Resources.appicon.png");
+            var pngStream = assembly.GetManifestResourceStream("NubRub.Resources.icons.appicon.png");
             if (pngStream != null)
             {
                 using (var bitmap = new Bitmap(pngStream))
