@@ -1,0 +1,10 @@
+# Build outputs
+dist/
+*.wixobj
+*.wixpdb
+*.msi
+
+# Temporary files
+*.tmp
+*.log
+

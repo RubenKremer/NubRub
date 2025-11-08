@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- WiX v6 (v4+ schema) installer authoring for NubRub
+     Build with: wix build NubRub.wxs -ext WixToolset.UI.wixext -o NubRub.msi -->
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package
+      Name="NubRub"
+      Manufacturer="R. Kremer"
+      Version="1.0.0"
+      UpgradeCode="26403662-5690-4011-9e9e-1a411767646b"
+      Scope="perUser">
+
+    <!-- Major upgrades & media -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of NubRub is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <!-- Built-in MSI UI (requires -ext WixToolset.UI.wixext) -->
+    <!-- WixUI_Mondo includes license agreement page -->
+    <ui:WixUI Id="WixUI_Mondo" InstallDirectory="INSTALLFOLDER" />
+
+    <WixVariable Id="WixUIBannerBmp" Value="resources\banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="resources\dialog.bmp" />
+    <WixVariable Id="WixUILicenseRtf" Value="resources\license.rtf" />
+
+    <!-- Standard directories -->
+    <StandardDirectory Id="TARGETDIR" />
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="INSTALLFOLDER" Name="NubRub">
+        <Component Id="ApplicationFiles" Guid="*">
+            <File Id="NubRubExe"
+                  Source="..\\bin\\Release\\net8.0-windows\\win-x64\\publish\\NubRub.exe"
+                  KeyPath="yes" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <!-- Start Menu -->
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ProgramMenuNubRub" Name="NubRub" />
+    </StandardDirectory>
+
+    <!-- Per-user Desktop -->
+    <StandardDirectory Id="DesktopFolder">
+      <Component Id="DesktopShortcut" Guid="*">
+        <Shortcut Id="DesktopNubRubShortcut"
+                  Name="NubRub"
+                  Description="Launch NubRub"
+                  Target="[INSTALLFOLDER]NubRub.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKCU"
+                       Key="Software\\NubRub"
+                       Name="DesktopShortcut"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <!-- Start Menu shortcut -->
+    <DirectoryRef Id="ProgramMenuNubRub">
+      <Component Id="StartMenuShortcut" Guid="*">
+        <Shortcut Id="StartMenuNubRubShortcut"
+                  Name="NubRub"
+                  Description="Launch NubRub"
+                  Target="[INSTALLFOLDER]NubRub.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Id="RemoveStartMenuDir" On="uninstall" />
+        <RegistryValue Root="HKCU"
+                       Key="Software\\NubRub"
+                       Name="StartMenuShortcut"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- Features -->
+    <Feature Id="Main" Title="NubRub" Level="1">
+      <ComponentRef Id="ApplicationFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+
+  </Package>
+</Wix>

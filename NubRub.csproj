@@ -1,0 +1,71 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    
+    <!-- Application icon - add appicon.ico to Resources folder or project root -->
+    <ApplicationIcon Condition="Exists('Resources\appicon.ico')">Resources\appicon.ico</ApplicationIcon>
+    <ApplicationIcon Condition="Exists('appicon.ico')">appicon.ico</ApplicationIcon>
+    
+    <!-- Application Metadata -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Authors>Kremer</Authors>
+    <Company>hyperbOlica</Company>
+    <Product>NubRub</Product>
+    <Description>A Windows system tray application that plays sounds when the TrackPoint (Lenovo ThinkPad pointing stick) is used.</Description>
+    <Copyright>Copyright © 2025</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Audio pack files - squeak pack -->
+    <EmbeddedResource Include="Resources\squeak-1.wav" Condition="Exists('Resources\squeak-1.wav')" />
+    <EmbeddedResource Include="Resources\squeak-2.wav" Condition="Exists('Resources\squeak-2.wav')" />
+    <EmbeddedResource Include="Resources\squeak-3.wav" Condition="Exists('Resources\squeak-3.wav')" />
+    <EmbeddedResource Include="Resources\squeak-4.wav" Condition="Exists('Resources\squeak-4.wav')" />
+    <EmbeddedResource Include="Resources\squeak-5.wav" Condition="Exists('Resources\squeak-5.wav')" />
+    <EmbeddedResource Include="Resources\squeak-trigger.wav" Condition="Exists('Resources\squeak-trigger.wav')" />
+    <!-- Audio pack files - nsfw pack -->
+    <EmbeddedResource Include="Resources\nsfw-1.wav" Condition="Exists('Resources\nsfw-1.wav')" />
+    <EmbeddedResource Include="Resources\nsfw-2.wav" Condition="Exists('Resources\nsfw-2.wav')" />
+    <EmbeddedResource Include="Resources\nsfw-3.wav" Condition="Exists('Resources\nsfw-3.wav')" />
+    <EmbeddedResource Include="Resources\nsfw-4.wav" Condition="Exists('Resources\nsfw-4.wav')" />
+    <EmbeddedResource Include="Resources\nsfw-5.wav" Condition="Exists('Resources\nsfw-5.wav')" />
+    <EmbeddedResource Include="Resources\nsfw-trigger.wav" Condition="Exists('Resources\nsfw-trigger.wav')" />
+    <!-- Audio pack files - bugs pack -->
+    <EmbeddedResource Include="Resources\bugs-1.wav" Condition="Exists('Resources\bugs-1.wav')" />
+    <EmbeddedResource Include="Resources\bugs-2.wav" Condition="Exists('Resources\bugs-2.wav')" />
+    <EmbeddedResource Include="Resources\bugs-3.wav" Condition="Exists('Resources\bugs-3.wav')" />
+    <EmbeddedResource Include="Resources\bugs-4.wav" Condition="Exists('Resources\bugs-4.wav')" />
+    <EmbeddedResource Include="Resources\bugs-5.wav" Condition="Exists('Resources\bugs-5.wav')" />
+    <EmbeddedResource Include="Resources\bugs-trigger.wav" Condition="Exists('Resources\bugs-trigger.wav')" />
+    <!-- Audio pack files - glass pack -->
+    <EmbeddedResource Include="Resources\glass-1.wav" Condition="Exists('Resources\glass-1.wav')" />
+    <EmbeddedResource Include="Resources\glass-2.wav" Condition="Exists('Resources\glass-2.wav')" />
+    <EmbeddedResource Include="Resources\glass-3.wav" Condition="Exists('Resources\glass-3.wav')" />
+    <EmbeddedResource Include="Resources\glass-4.wav" Condition="Exists('Resources\glass-4.wav')" />
+    <EmbeddedResource Include="Resources\glass-5.wav" Condition="Exists('Resources\glass-5.wav')" />
+    <EmbeddedResource Include="Resources\glass-trigger.wav" Condition="Exists('Resources\glass-trigger.wav')" />
+    <!-- Icon files are optional - add trayicon.ico or trayicon.png to Resources folder if you want a custom tray icon -->
+    <EmbeddedResource Include="Resources\trayicon.ico" Condition="Exists('Resources\trayicon.ico')" />
+    <EmbeddedResource Include="Resources\trayicon.png" Condition="Exists('Resources\trayicon.png')" />
+    <!-- Application icon files are optional - add appicon.ico or appicon.png to Resources folder if you want a custom app icon -->
+    <EmbeddedResource Include="Resources\appicon.ico" Condition="Exists('Resources\appicon.ico')" />
+    <EmbeddedResource Include="Resources\appicon.png" Condition="Exists('Resources\appicon.png')" />
+  </ItemGroup>
+
+</Project>
