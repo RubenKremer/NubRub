@@ -3,6 +3,10 @@ using System.IO;
 using System.Windows.Forms;
 using System.Linq;
 using NubRub.Models;
+using NubRub.Core;
+using NubRub.Services;
+using NubRub.UI;
+using NubRub.Utilities;
 using Microsoft.Win32;
 using System.Threading;
 

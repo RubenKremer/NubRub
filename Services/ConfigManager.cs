@@ -3,7 +3,7 @@ using System.Text;
 using NubRub.Models;
 using Newtonsoft.Json;
 
-namespace NubRub;
+namespace NubRub.Services;
 
 public class ConfigManager
 {

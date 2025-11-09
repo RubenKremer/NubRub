@@ -3,7 +3,7 @@ using System.IO;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-namespace NubRub;
+namespace NubRub.Utilities;
 
 /// <summary>
 /// Manages Windows file association for .nubrub files.

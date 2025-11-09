@@ -8,8 +8,9 @@ using System.Windows.Forms;
 using NAudio.Wave;
 using NubRub.Models;
 using NubRub.Utilities;
+using NubRub.Services;
 
-namespace NubRub;
+namespace NubRub.UI;
 
 public partial class AudioPackWizard : Form
 {

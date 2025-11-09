@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using NubRub.Models;
 using System;
 
-namespace NubRub;
+namespace NubRub.Core;
 
 public class RawInputHandler
 {

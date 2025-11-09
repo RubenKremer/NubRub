@@ -2,7 +2,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Reflection;
 
-namespace NubRub;
+namespace NubRub.Core;
 
 public class TrayIcon : IDisposable
 {

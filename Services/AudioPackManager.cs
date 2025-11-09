@@ -4,7 +4,7 @@ using System.Text;
 using NubRub.Models;
 using Newtonsoft.Json;
 
-namespace NubRub;
+namespace NubRub.Services;
 
 /// <summary>
 /// Manages loading and validation of audio packs (both built-in and custom).

@@ -1,8 +1,9 @@
 using System.Diagnostics;
 using System.Windows.Forms;
 using NubRub.Models;
+using NubRub.Services;
 
-namespace NubRub;
+namespace NubRub.UI;
 
 public partial class ConfigPanel : Form
 {
@@ -296,14 +297,14 @@ public partial class ConfigPanel : Form
                 }
             }
 
-            try
-            {
-                string instructionFilePath = Path.Combine(audioPacksPath, "HOW_TO_CREATE_AUDIO_PACKS.txt");
-                if (!File.Exists(instructionFilePath))
+                try
                 {
-                    var tempManager = new AudioPackManager();
+                    string instructionFilePath = Path.Combine(audioPacksPath, "HOW_TO_CREATE_AUDIO_PACKS.txt");
+                    if (!File.Exists(instructionFilePath))
+                    {
+                        var tempManager = new AudioPackManager();
+                    }
                 }
-            }
             catch
             {
             }

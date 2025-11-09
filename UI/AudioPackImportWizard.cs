@@ -8,9 +8,10 @@ using System.Text;
 using System.Windows.Forms;
 using NubRub.Models;
 using NubRub.Utilities;
+using NubRub.Services;
 using Newtonsoft.Json;
 
-namespace NubRub;
+namespace NubRub.UI;
 
 public partial class AudioPackImportWizard : Form
 {

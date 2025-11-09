@@ -1,4 +1,4 @@
-namespace NubRub;
+namespace NubRub.Core;
 
 public class WiggleDetector
 {

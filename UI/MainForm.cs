@@ -2,7 +2,9 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Reflection;
 
-namespace NubRub;
+using NubRub.Core;
+
+namespace NubRub.UI;
 
 public partial class MainForm : Form
 {

@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace NubRub;
+namespace NubRub.UI;
 
 public partial class UpdateProgressDialog : Form
 {

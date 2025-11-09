@@ -3,7 +3,7 @@ using System.Drawing;
 
 using NubRub.Models;
 
-namespace NubRub;
+namespace NubRub.UI;
 
 public partial class DebugWindow : Form
 {

@@ -3,7 +3,7 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NubRub.Models;
 
-namespace NubRub;
+namespace NubRub.Services;
 
 public class AudioPlayer : IDisposable
 {
