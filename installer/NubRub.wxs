@@ -8,7 +8,7 @@
   <Package
       Name="NubRub"
       Manufacturer="R. Kremer"
-      Version="1.1.0"
+      Version="1.1.1"
       UpgradeCode="26403662-5690-4011-9e9e-1a411767646b"
       Scope="perUser">
 
