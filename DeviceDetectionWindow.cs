@@ -31,7 +31,7 @@ public partial class DeviceDetectionWindow : Form
         
         _instructionLabel = new Label
         {
-            Text = "Please wiggle your TrackPoint now.",
+            Text = "Please rub your trackpoint nub now!",
             Location = new Point(20, y),
             Size = new Size(460, 40),
             Font = new Font("Segoe UI", 12, FontStyle.Bold),
