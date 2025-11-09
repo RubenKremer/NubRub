@@ -40,15 +40,7 @@ Download the latest MSI installer from the [Releases](https://github.com/RubenKr
 ## Building
 
 ```bash
-dotnet build
-```
-
-## Publishing
-
-To create a single-file self-contained executable:
-
-```bash
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+build.bat
 ```
 
 The executable will be in `bin/Release/net8.0-windows/win-x64/publish/NubRub.exe`
@@ -77,18 +69,6 @@ See `installer/README.md` for detailed instructions.
 5. Click **Save** to apply your settings
 6. Move the TrackPoint - you should hear the sound
 7. Wiggle the TrackPoint continuously for 25 seconds to trigger the sound
-
-## Configuration
-
-Configuration is stored in `%LOCALAPPDATA%/NubRub/config.json`
-
-Settings include:
-- **Selected device**: Choose your TrackPoint from the dropdown or use Auto-detect
-- **Audio pack**: Select from built-in packs (squeak, nsfw, bugs, glass) or custom packs
-- **Audio volume**: 0-100% slider
-- **Idle cutoff time**: Milliseconds of inactivity before stopping sound (default: 250ms)
-- **Only on movement**: Ignore button events, only react to movement
-- **Start with Windows**: Automatically launch on system startup
 
 ## Audio Files
 
