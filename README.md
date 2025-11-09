@@ -16,6 +16,26 @@ A Windows 11 system tray application that plays squeaky sounds when the TrackPoi
 - Windows 11
 - .NET 8 Runtime (included in self-contained build)
 
+## Installation
+
+### Via Windows Package Manager (winget)
+
+If NubRub is available in the Windows Package Manager repository, you can install it using:
+
+```powershell
+winget install R.Kremer.NubRub
+```
+
+Or simply:
+
+```powershell
+winget install NubRub
+```
+
+### Manual Installation
+
+Download the latest MSI installer from the [Releases](https://github.com/RubenKremer/NubRub/releases) page and run it.
+
 ## Building
 
 ```bash
