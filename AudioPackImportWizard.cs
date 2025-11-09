@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using NubRub.Models;
+using NubRub.Utilities;
 using Newtonsoft.Json;
 
 namespace NubRub;
@@ -242,7 +243,7 @@ public partial class AudioPackImportWizard : Form
                     // Delete existing pack
                     if (!string.IsNullOrEmpty(existingPack.PackDirectory) && Directory.Exists(existingPack.PackDirectory))
                     {
-                        Directory.Delete(existingPack.PackDirectory, true);
+                        PathUtilities.SafeDeleteDirectory(existingPack.PackDirectory);
                     }
                 }
                 else if (result == DialogResult.Cancel)
@@ -257,7 +258,7 @@ public partial class AudioPackImportWizard : Form
             }
 
             // Sanitize pack name for folder name
-            string folderName = SanitizeDirectoryName(_packInfo.Name);
+            string folderName = PathUtilities.SanitizeDirectoryName(_packInfo.Name);
             if (string.IsNullOrWhiteSpace(folderName))
             {
                 MessageBox.Show("Invalid pack name for folder creation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -267,7 +268,7 @@ public partial class AudioPackImportWizard : Form
             string packDirectory = Path.Combine(_packManager.AudioPacksPath, folderName);
             if (Directory.Exists(packDirectory))
             {
-                Directory.Delete(packDirectory, true);
+                PathUtilities.SafeDeleteDirectory(packDirectory);
             }
             Directory.CreateDirectory(packDirectory);
 
@@ -297,7 +298,7 @@ public partial class AudioPackImportWizard : Form
             {
                 if (Directory.Exists(_tempExtractPath))
                 {
-                    Directory.Delete(_tempExtractPath, true);
+                    PathUtilities.SafeDeleteDirectory(_tempExtractPath);
                 }
             }
             catch { }
@@ -311,39 +312,6 @@ public partial class AudioPackImportWizard : Form
         }
     }
 
-    private string SanitizeDirectoryName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            return string.Empty;
-
-        // Remove invalid characters
-        char[] invalidChars = Path.GetInvalidFileNameChars();
-        string sanitized = name;
-        foreach (char c in invalidChars)
-        {
-            sanitized = sanitized.Replace(c, '_');
-        }
-
-        // Trim and replace spaces with underscores
-        sanitized = sanitized.Trim().Replace(' ', '_');
-
-        // Remove consecutive underscores
-        while (sanitized.Contains("__"))
-        {
-            sanitized = sanitized.Replace("__", "_");
-        }
-
-        // Remove leading/trailing underscores
-        sanitized = sanitized.Trim('_');
-
-        // Ensure it's not empty
-        if (string.IsNullOrWhiteSpace(sanitized))
-        {
-            sanitized = "AudioPack";
-        }
-
-        return sanitized;
-    }
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
@@ -352,7 +320,7 @@ public partial class AudioPackImportWizard : Form
         {
             if (!string.IsNullOrEmpty(_tempExtractPath) && Directory.Exists(_tempExtractPath))
             {
-                Directory.Delete(_tempExtractPath, true);
+                PathUtilities.SafeDeleteDirectory(_tempExtractPath);
             }
         }
         catch { }

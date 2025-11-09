@@ -132,175 +132,7 @@ static class Program
             _trayIcon.AudioPackDeleteRequested += OnAudioPackDeleteRequested;
 
             // Try to match saved device
-            try
-            {
-                _debugWindow?.Log("Enumerating HID devices...");
-                List<DeviceInfo> availableDevices;
-                try
-                {
-                    _debugWindow?.Log("Calling EnumerateDevices()...");
-                    _debugWindow?.Log("Step 1: Creating RawInputHandler instance...");
-                    
-                    if (_rawInputHandler == null)
-                    {
-                        _debugWindow?.Log("ERROR: RawInputHandler is null!");
-                        availableDevices = new List<DeviceInfo>();
-                    }
-                    else
-                    {
-                        _debugWindow?.Log("Step 2: RawInputHandler exists, calling EnumerateDevices()...");
-                        _debugWindow?.Log($"RawInputHandler type: {_rawInputHandler.GetType().Name}");
-                        _debugWindow?.Log($"RawInputHandler is null: {_rawInputHandler == null}");
-                        
-                        try
-                        {
-                            _debugWindow?.Log("About to call EnumerateDevices() method...");
-                            System.Threading.Thread.Sleep(50); // Small delay
-                            Application.DoEvents();
-                            
-                            if (_rawInputHandler == null)
-                            {
-                                availableDevices = new List<DeviceInfo>();
-                            }
-                            else
-                            {
-                                availableDevices = _rawInputHandler.EnumerateDevices();
-                            }
-                            _debugWindow?.Log($"EnumerateDevices() completed successfully");
-                            _debugWindow?.Log($"Found {availableDevices.Count} device(s) available for selection");
-                            
-                            if (availableDevices.Count > 0)
-                            {
-                                _debugWindow?.Log("");
-                                _debugWindow?.Log("Devices are now available in the config panel!");
-                                _debugWindow?.Log("Right-click the tray icon and select 'Select HID Device' to choose your TrackPoint.");
-                            }
-                            else
-                            {
-                                _debugWindow?.Log("");
-                                _debugWindow?.Log("WARNING: No devices found. Check the enumeration summary above for details.");
-                            }
-                        }
-                        catch (Exception innerEx)
-                        {
-                            _debugWindow?.Log($"CRASH inside EnumerateDevices(): {innerEx.Message}");
-                            _debugWindow?.Log($"Inner exception type: {innerEx.GetType().Name}");
-                            if (innerEx.InnerException != null)
-                            {
-                                _debugWindow?.Log($"Inner exception: {innerEx.InnerException.Message}");
-                            }
-                            _debugWindow?.Log($"Stack trace: {innerEx.StackTrace}");
-                            _debugWindow?.Log("");
-                            _debugWindow?.Log("This crash suggests:");
-                            _debugWindow?.Log("  - Memory allocation issue");
-                            _debugWindow?.Log("  - Windows API call failure");
-                            _debugWindow?.Log("  - Invalid device handle");
-                            _debugWindow?.Log("  - Struct marshalling issue");
-                            availableDevices = new List<DeviceInfo>();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _debugWindow?.Log($"CRASH calling EnumerateDevices(): {ex.Message}");
-                    _debugWindow?.Log($"Exception type: {ex.GetType().Name}");
-                    if (ex.InnerException != null)
-                    {
-                        _debugWindow?.Log($"Inner exception: {ex.InnerException.Message}");
-                    }
-                    _debugWindow?.Log($"Stack trace: {ex.StackTrace}");
-                    _debugWindow?.Log("");
-                    _debugWindow?.Log("This crash suggests:");
-                    _debugWindow?.Log("  - RawInputHandler is null or invalid");
-                    _debugWindow?.Log("  - Method call issue");
-                    availableDevices = new List<DeviceInfo>();
-                }
-                
-                _debugWindow?.Log($"Found {availableDevices.Count} mouse HID device(s)");
-                
-                if (availableDevices.Count == 0)
-                {
-                    _debugWindow?.Log("");
-                    _debugWindow?.Log("TROUBLESHOOTING:");
-                    _debugWindow?.Log("1. Check Visual Studio Output window (Debug) for detailed device info");
-                    _debugWindow?.Log("2. Try running as Administrator");
-                    _debugWindow?.Log("3. Ensure TrackPoint is enabled in BIOS/Windows settings");
-                    _debugWindow?.Log("4. Check Device Manager for HID-compliant mouse devices");
-                }
-                
-                if (availableDevices.Count == 0)
-                {
-                    _debugWindow?.Log("WARNING: No devices found. This might be due to:");
-                    _debugWindow?.Log("  - Raw Input not registered properly");
-                    _debugWindow?.Log("  - No mouse devices connected");
-                    _debugWindow?.Log("  - Permission issues");
-                    
-                    try
-                    {
-                        var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-                        var principal = new System.Security.Principal.WindowsPrincipal(identity);
-                        bool isAdmin = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-                        if (!isAdmin)
-                        {
-                            _debugWindow?.Log("NOTE: Not running as Administrator - this may cause device access issues");
-                        }
-                        else
-                        {
-                            _debugWindow?.Log("Running as Administrator - permissions should be OK");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _debugWindow?.Log($"Could not check admin status: {ex.Message}");
-                    }
-                }
-                
-                foreach (var device in availableDevices)
-                {
-                    try
-                    {
-                        _debugWindow?.LogDeviceInfo($"{device.DisplayName} - Handle: {device.Handle}");
-                    }
-                    catch (Exception ex)
-                    {
-                        _debugWindow?.Log($"Error logging device info: {ex.Message}");
-                    }
-                }
-
-                try
-                {
-                    var matchedDevice = _configManager?.FindMatchingDevice(availableDevices, _config?.SelectedDevice);
-                    if (matchedDevice != null && _rawInputHandler != null)
-                    {
-                        _rawInputHandler.SetSelectedDevice(matchedDevice.Handle);
-                        _debugWindow?.LogDeviceInfo($"Selected device: {matchedDevice.DisplayName}");
-                    }
-                    else
-                    {
-                        // No device selected - show auto-detection window
-                        _debugWindow?.Log("No device selected. Starting auto-detection...");
-                        if (availableDevices.Count > 0)
-                        {
-                            ShowDeviceDetectionWindow(availableDevices);
-                        }
-                        else
-                        {
-                            _debugWindow?.Log("No devices found. Use tray menu to select a device.");
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _debugWindow?.Log($"Error matching device: {ex.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _debugWindow?.Log($"FATAL ERROR during device enumeration on startup: {ex.Message}");
-                _debugWindow?.Log($"Exception type: {ex.GetType().Name}");
-                _debugWindow?.Log($"Stack trace: {ex.StackTrace}");
-                _debugWindow?.Log("Use tray menu to select a device.");
-            }
+            EnumerateAndMatchDevices();
 
             if (_config != null)
             {
@@ -410,6 +242,179 @@ static class Program
         }
     }
 
+    private static void EnumerateAndMatchDevices()
+    {
+        try
+        {
+            _debugWindow?.Log("Enumerating HID devices...");
+            List<DeviceInfo> availableDevices;
+            try
+            {
+                _debugWindow?.Log("Calling EnumerateDevices()...");
+                _debugWindow?.Log("Step 1: Creating RawInputHandler instance...");
+                
+                if (_rawInputHandler == null)
+                {
+                    _debugWindow?.Log("ERROR: RawInputHandler is null!");
+                    availableDevices = new List<DeviceInfo>();
+                }
+                else
+                {
+                    _debugWindow?.Log("Step 2: RawInputHandler exists, calling EnumerateDevices()...");
+                    _debugWindow?.Log($"RawInputHandler type: {_rawInputHandler.GetType().Name}");
+                    _debugWindow?.Log($"RawInputHandler is null: {_rawInputHandler == null}");
+                    
+                    try
+                    {
+                        _debugWindow?.Log("About to call EnumerateDevices() method...");
+                        System.Threading.Thread.Sleep(50); // Small delay
+                        Application.DoEvents();
+                        
+                        if (_rawInputHandler == null)
+                        {
+                            availableDevices = new List<DeviceInfo>();
+                        }
+                        else
+                        {
+                            availableDevices = _rawInputHandler.EnumerateDevices();
+                        }
+                        _debugWindow?.Log($"EnumerateDevices() completed successfully");
+                        _debugWindow?.Log($"Found {availableDevices.Count} device(s) available for selection");
+                        
+                        if (availableDevices.Count > 0)
+                        {
+                            _debugWindow?.Log("");
+                            _debugWindow?.Log("Devices are now available in the config panel!");
+                            _debugWindow?.Log("Right-click the tray icon and select 'Select HID Device' to choose your TrackPoint.");
+                        }
+                        else
+                        {
+                            _debugWindow?.Log("");
+                            _debugWindow?.Log("WARNING: No devices found. Check the enumeration summary above for details.");
+                        }
+                    }
+                    catch (Exception innerEx)
+                    {
+                        _debugWindow?.Log($"CRASH inside EnumerateDevices(): {innerEx.Message}");
+                        _debugWindow?.Log($"Inner exception type: {innerEx.GetType().Name}");
+                        if (innerEx.InnerException != null)
+                        {
+                            _debugWindow?.Log($"Inner exception: {innerEx.InnerException.Message}");
+                        }
+                        _debugWindow?.Log($"Stack trace: {innerEx.StackTrace}");
+                        _debugWindow?.Log("");
+                        _debugWindow?.Log("This crash suggests:");
+                        _debugWindow?.Log("  - Memory allocation issue");
+                        _debugWindow?.Log("  - Windows API call failure");
+                        _debugWindow?.Log("  - Invalid device handle");
+                        _debugWindow?.Log("  - Struct marshalling issue");
+                        availableDevices = new List<DeviceInfo>();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _debugWindow?.Log($"CRASH calling EnumerateDevices(): {ex.Message}");
+                _debugWindow?.Log($"Exception type: {ex.GetType().Name}");
+                if (ex.InnerException != null)
+                {
+                    _debugWindow?.Log($"Inner exception: {ex.InnerException.Message}");
+                }
+                _debugWindow?.Log($"Stack trace: {ex.StackTrace}");
+                _debugWindow?.Log("");
+                _debugWindow?.Log("This crash suggests:");
+                _debugWindow?.Log("  - RawInputHandler is null or invalid");
+                _debugWindow?.Log("  - Method call issue");
+                availableDevices = new List<DeviceInfo>();
+            }
+            
+            _debugWindow?.Log($"Found {availableDevices.Count} mouse HID device(s)");
+            
+            if (availableDevices.Count == 0)
+            {
+                _debugWindow?.Log("");
+                _debugWindow?.Log("TROUBLESHOOTING:");
+                _debugWindow?.Log("1. Check Visual Studio Output window (Debug) for detailed device info");
+                _debugWindow?.Log("2. Try running as Administrator");
+                _debugWindow?.Log("3. Ensure TrackPoint is enabled in BIOS/Windows settings");
+                _debugWindow?.Log("4. Check Device Manager for HID-compliant mouse devices");
+            }
+            
+            if (availableDevices.Count == 0)
+            {
+                _debugWindow?.Log("WARNING: No devices found. This might be due to:");
+                _debugWindow?.Log("  - Raw Input not registered properly");
+                _debugWindow?.Log("  - No mouse devices connected");
+                _debugWindow?.Log("  - Permission issues");
+                
+                try
+                {
+                    var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                    var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                    bool isAdmin = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+                    if (!isAdmin)
+                    {
+                        _debugWindow?.Log("NOTE: Not running as Administrator - this may cause device access issues");
+                    }
+                    else
+                    {
+                        _debugWindow?.Log("Running as Administrator - permissions should be OK");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _debugWindow?.Log($"Could not check admin status: {ex.Message}");
+                }
+            }
+            
+            foreach (var device in availableDevices)
+            {
+                try
+                {
+                    _debugWindow?.LogDeviceInfo($"{device.DisplayName} - Handle: {device.Handle}");
+                }
+                catch (Exception ex)
+                {
+                    _debugWindow?.Log($"Error logging device info: {ex.Message}");
+                }
+            }
+
+            try
+            {
+                var matchedDevice = _configManager?.FindMatchingDevice(availableDevices, _config?.SelectedDevice);
+                if (matchedDevice != null && _rawInputHandler != null)
+                {
+                    _rawInputHandler.SetSelectedDevice(matchedDevice.Handle);
+                    _debugWindow?.LogDeviceInfo($"Selected device: {matchedDevice.DisplayName}");
+                }
+                else
+                {
+                    // No device selected - show auto-detection window
+                    _debugWindow?.Log("No device selected. Starting auto-detection...");
+                    if (availableDevices.Count > 0)
+                    {
+                        ShowDeviceDetectionWindow(availableDevices);
+                    }
+                    else
+                    {
+                        _debugWindow?.Log("No devices found. Use tray menu to select a device.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _debugWindow?.Log($"Error matching device: {ex.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _debugWindow?.Log($"FATAL ERROR during device enumeration on startup: {ex.Message}");
+            _debugWindow?.Log($"Exception type: {ex.GetType().Name}");
+            _debugWindow?.Log($"Stack trace: {ex.StackTrace}");
+            _debugWindow?.Log("Use tray menu to select a device.");
+        }
+    }
+
     private static void OnWiggleDetected(object? sender, EventArgs e)
     {
         // Stop squeak, play trigger sound, then execute tel: link
@@ -448,6 +453,11 @@ static class Program
             return;
         }
 
+        HandleAudioPackCreate();
+    }
+
+    private static void HandleAudioPackCreate()
+    {
         try
         {
             // Determine the owner form - use config panel if it's open, otherwise use null (top-level)
@@ -511,6 +521,14 @@ static class Program
             _mainForm.Invoke(new Action<object?, EventArgs>(OnAudioPackEditRequested), sender, e);
             return;
         }
+
+        HandleAudioPackEdit();
+    }
+
+    private static void HandleAudioPackEdit()
+    {
+        if (_packManager == null)
+            return;
 
         // Declare variables at method scope so they're accessible in catch block
         AudioPackInfo? selectedPack = null;
@@ -739,6 +757,14 @@ static class Program
             return;
         }
 
+        HandleAudioPackExport();
+    }
+
+    private static void HandleAudioPackExport()
+    {
+        if (_packManager == null)
+            return;
+
         try
         {
             var allPacks = _packManager.GetAllPacks();
@@ -868,6 +894,11 @@ static class Program
             return;
         }
 
+        HandleAudioPackImport();
+    }
+
+    private static void HandleAudioPackImport()
+    {
         try
         {
             using var openDialog = new OpenFileDialog
@@ -898,6 +929,14 @@ static class Program
             _mainForm.Invoke(new Action<object?, EventArgs>(OnAudioPackDeleteRequested), sender, e);
             return;
         }
+
+        HandleAudioPackDelete();
+    }
+
+    private static void HandleAudioPackDelete()
+    {
+        if (_packManager == null)
+            return;
 
         try
         {
@@ -1023,7 +1062,7 @@ static class Program
                             {
                                 if (Directory.Exists(selectedPack.PackDirectory))
                                 {
-                                    Directory.Delete(selectedPack.PackDirectory, true);
+                                    NubRub.Utilities.PathUtilities.SafeDeleteDirectory(selectedPack.PackDirectory);
                                 }
                                 
                                 if (isCurrentlyActive && _config != null)

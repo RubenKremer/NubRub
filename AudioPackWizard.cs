@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using NAudio.Wave;
 using NubRub.Models;
+using NubRub.Utilities;
 
 namespace NubRub;
 
@@ -1045,7 +1046,7 @@ public partial class AudioPackWizard : Form
         try
         {
             // Sanitize pack name for folder name
-            string folderName = SanitizeDirectoryName(_currentPack.Name);
+            string folderName = PathUtilities.SanitizeDirectoryName(_currentPack.Name);
             if (string.IsNullOrWhiteSpace(folderName))
             {
                 MessageBox.Show("Invalid pack name for folder creation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -1080,7 +1081,7 @@ public partial class AudioPackWizard : Form
                     }
                     
                     _currentPack.Name = newName;
-                    folderName = SanitizeDirectoryName(newName);
+                    folderName = PathUtilities.SanitizeDirectoryName(newName);
                 }
             }
             
@@ -1126,14 +1127,14 @@ public partial class AudioPackWizard : Form
 
                     if (result == DialogResult.Yes)
                     {
-                        Directory.Delete(packDirectory, true);
+                        PathUtilities.SafeDeleteDirectory(packDirectory);
                     }
                     else
                     {
                         // Clean up temp directory if created
                         if (tempCopyDirectory != null && Directory.Exists(tempCopyDirectory))
                         {
-                            try { Directory.Delete(tempCopyDirectory, true); } catch { }
+                            try { PathUtilities.SafeDeleteDirectory(tempCopyDirectory); } catch { }
                         }
                         return false;
                     }
@@ -1141,7 +1142,7 @@ public partial class AudioPackWizard : Form
                 else
                 {
                     // This shouldn't happen after auto-rename, but if it does, delete it
-                    Directory.Delete(packDirectory, true);
+                    PathUtilities.SafeDeleteDirectory(packDirectory);
                 }
             }
 
@@ -1171,7 +1172,7 @@ public partial class AudioPackWizard : Form
 
                 string finalFileName = Path.GetFileName(actualSourcePath);
                 string destPath = Path.Combine(packDirectory, finalFileName);
-                File.Copy(actualSourcePath, destPath, true);
+                PathUtilities.SafeCopyFile(actualSourcePath, destPath);
                 rubSoundFileNames.Add(finalFileName);
             }
 
@@ -1199,14 +1200,14 @@ public partial class AudioPackWizard : Form
 
                 string finalFileName = Path.GetFileName(actualSourcePath);
                 string destPath = Path.Combine(packDirectory, finalFileName);
-                File.Copy(actualSourcePath, destPath, true);
+                PathUtilities.SafeCopyFile(actualSourcePath, destPath);
                 finishSoundFileNames.Add(finalFileName);
             }
             
             // Clean up temp directory if created
             if (tempCopyDirectory != null && Directory.Exists(tempCopyDirectory))
             {
-                try { Directory.Delete(tempCopyDirectory, true); } catch {                 }
+                try { PathUtilities.SafeDeleteDirectory(tempCopyDirectory); } catch { }
             }
             
             var packJson = new
@@ -1233,39 +1234,6 @@ public partial class AudioPackWizard : Form
         }
     }
 
-    private string SanitizeDirectoryName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            return string.Empty;
-
-        // Remove invalid characters
-        char[] invalidChars = Path.GetInvalidFileNameChars();
-        string sanitized = name;
-        foreach (char c in invalidChars)
-        {
-            sanitized = sanitized.Replace(c, '_');
-        }
-
-        // Trim and replace spaces with underscores
-        sanitized = sanitized.Trim().Replace(' ', '_');
-
-        // Remove consecutive underscores
-        while (sanitized.Contains("__"))
-        {
-            sanitized = sanitized.Replace("__", "_");
-        }
-
-        // Remove leading/trailing underscores
-        sanitized = sanitized.Trim('_');
-
-        // Ensure it's not empty
-        if (string.IsNullOrWhiteSpace(sanitized))
-        {
-            sanitized = "AudioPack";
-        }
-
-        return sanitized;
-    }
     
     private bool UpdatePack()
     {
@@ -1339,7 +1307,7 @@ public partial class AudioPackWizard : Form
                     continue;
                 }
                 
-                SafeCopyFile(sourcePath, destPath);
+                PathUtilities.SafeCopyFile(sourcePath, destPath);
                 rubSoundFileNames.Add(fileName);
             }
 
@@ -1362,7 +1330,7 @@ public partial class AudioPackWizard : Form
                     continue;
                 }
                 
-                SafeCopyFile(sourcePath, destPath);
+                PathUtilities.SafeCopyFile(sourcePath, destPath);
                 finishSoundFileNames.Add(fileName);
             }
 
@@ -1407,57 +1375,6 @@ public partial class AudioPackWizard : Form
         }
     }
     
-    private void SafeCopyFile(string sourcePath, string destPath, int maxRetries = 5)
-    {
-        // If source and destination are the same file, no copy needed
-        if (string.Equals(sourcePath, destPath, StringComparison.OrdinalIgnoreCase))
-        {
-            return; // File is already in the correct location
-        }
-        
-        int retryCount = 0;
-        while (retryCount < maxRetries)
-        {
-            try
-            {
-                // If destination exists, try to delete it first (in case it's locked)
-                if (File.Exists(destPath))
-                {
-                    // Try to delete with retry
-                    int deleteRetries = 3;
-                    for (int i = 0; i < deleteRetries; i++)
-                    {
-                        try
-                        {
-                            File.Delete(destPath);
-                            break;
-                        }
-                        catch (IOException) when (i < deleteRetries - 1)
-                        {
-                            System.Threading.Thread.Sleep(100 * (i + 1)); // Exponential backoff
-                        }
-                    }
-                }
-                
-                File.Copy(sourcePath, destPath, false);
-                return; // Success
-            }
-            catch (IOException) when (retryCount < maxRetries - 1)
-            {
-                retryCount++;
-                // Exponential backoff: 200ms, 400ms, 800ms, 1600ms, 3200ms
-                int delay = 200 * (int)Math.Pow(2, retryCount - 1);
-                System.Threading.Thread.Sleep(delay);
-                
-                // Force garbage collection to release any lingering file handles
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
-        }
-        
-        // If we get here, all retries failed
-        throw new IOException($"Failed to copy file after {maxRetries} attempts: {Path.GetFileName(sourcePath)}");
-    }
     
     private string IncrementVersion(string currentVersion)
     {
