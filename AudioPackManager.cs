@@ -1,4 +1,5 @@
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using NubRub.Models;
 using Newtonsoft.Json;
@@ -457,6 +458,82 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
         catch
         {
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Exports an audio pack to a .nubrub file (ZIP archive).
+    /// </summary>
+    /// <param name="pack">The audio pack to export.</param>
+    /// <param name="outputPath">The full path where the .nubrub file should be saved.</param>
+    /// <returns>True if export was successful, false otherwise.</returns>
+    public bool ExportPack(AudioPackInfo pack, string outputPath)
+    {
+        if (pack == null || string.IsNullOrEmpty(pack.PackDirectory))
+        {
+            return false;
+        }
+
+        if (!Directory.Exists(pack.PackDirectory))
+        {
+            return false;
+        }
+
+        try
+        {
+            // Create or overwrite the output file
+            if (File.Exists(outputPath))
+            {
+                File.Delete(outputPath);
+            }
+
+            // Create ZIP archive
+            using (var zipArchive = ZipFile.Open(outputPath, ZipArchiveMode.Create))
+            {
+                // Add pack.json
+                string jsonPath = Path.Combine(pack.PackDirectory, "pack.json");
+                if (File.Exists(jsonPath))
+                {
+                    zipArchive.CreateEntryFromFile(jsonPath, "pack.json");
+                }
+                else
+                {
+                    // Create pack.json from pack info if it doesn't exist
+                    var packJson = new
+                    {
+                        name = pack.Name,
+                        version = pack.Version,
+                        rubsounds = pack.RubSounds,
+                        finishsound = pack.FinishSounds
+                    };
+                    string jsonContent = JsonConvert.SerializeObject(packJson, Formatting.Indented);
+                    var jsonEntry = zipArchive.CreateEntry("pack.json");
+                    using (var writer = new StreamWriter(jsonEntry.Open(), Encoding.UTF8))
+                    {
+                        writer.Write(jsonContent);
+                    }
+                }
+
+                // Add all WAV files from the pack directory
+                var allFiles = new List<string>();
+                allFiles.AddRange(pack.RubSounds);
+                allFiles.AddRange(pack.FinishSounds);
+
+                foreach (var fileName in allFiles)
+                {
+                    string? filePath = GetAudioFilePath(pack, fileName);
+                    if (filePath != null && File.Exists(filePath))
+                    {
+                        zipArchive.CreateEntryFromFile(filePath, Path.GetFileName(fileName));
+                    }
+                }
+            }
+
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 }

@@ -15,6 +15,11 @@ public class TrayIcon : IDisposable
     public event EventHandler<bool>? StartWithWindowsToggled;
     public event EventHandler? UpdateCheckRequested;
     public event EventHandler? ExitRequested;
+    public event EventHandler? AudioPackCreateRequested;
+    public event EventHandler? AudioPackEditRequested;
+    public event EventHandler? AudioPackExportRequested;
+    public event EventHandler? AudioPackImportRequested;
+    public event EventHandler? AudioPackDeleteRequested;
 
     private double _volume = 0.6;
     private bool _startWithWindows = false;
@@ -90,6 +95,42 @@ public class TrayIcon : IDisposable
             StartWithWindowsToggled?.Invoke(this, _startWithWindows);
         });
         _contextMenu.Items.Add(_startWithWindowsItem);
+
+        _contextMenu.Items.Add(new ToolStripSeparator());
+
+        // Audio Pack Management submenu
+        var audioPackSubmenu = new ToolStripMenuItem("Audio Pack Management");
+        var createPackItem = new ToolStripMenuItem("Create...", null, (s, e) =>
+        {
+            AudioPackCreateRequested?.Invoke(this, EventArgs.Empty);
+        });
+        audioPackSubmenu.DropDownItems.Add(createPackItem);
+        
+        var editPackItem = new ToolStripMenuItem("Edit...", null, (s, e) =>
+        {
+            AudioPackEditRequested?.Invoke(this, EventArgs.Empty);
+        });
+        audioPackSubmenu.DropDownItems.Add(editPackItem);
+        
+        var exportPackItem = new ToolStripMenuItem("Export...", null, (s, e) =>
+        {
+            AudioPackExportRequested?.Invoke(this, EventArgs.Empty);
+        });
+        audioPackSubmenu.DropDownItems.Add(exportPackItem);
+        
+        var importPackItem = new ToolStripMenuItem("Import...", null, (s, e) =>
+        {
+            AudioPackImportRequested?.Invoke(this, EventArgs.Empty);
+        });
+        audioPackSubmenu.DropDownItems.Add(importPackItem);
+        
+        var deletePackItem = new ToolStripMenuItem("Delete...", null, (s, e) =>
+        {
+            AudioPackDeleteRequested?.Invoke(this, EventArgs.Empty);
+        });
+        audioPackSubmenu.DropDownItems.Add(deletePackItem);
+        
+        _contextMenu.Items.Add(audioPackSubmenu);
 
         _contextMenu.Items.Add(new ToolStripSeparator());
 

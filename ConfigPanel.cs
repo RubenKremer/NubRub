@@ -212,7 +212,7 @@ public partial class ConfigPanel : Form
         }
     }
 
-    private void PopulateAudioPacks(string currentPack)
+    public void PopulateAudioPacks(string currentPack)
     {
         _audioPackComboBox.Items.Clear();
         

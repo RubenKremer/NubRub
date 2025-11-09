@@ -16,6 +16,7 @@ public class AudioPlayer : IDisposable
     private bool _hasRecentMovement = false; // Track if there's been recent movement
     private bool _isInitialized = false;
     private bool _isInCooldown = false; // Track if we're in cooldown period after trigger
+    private bool _isEnabled = true; // Track if AudioPlayer is enabled (can respond to movement)
     private double _volume = 0.6;
     private int _idleCutoffMs = 250;
     private string _audioPack = "squeak";
@@ -64,6 +65,20 @@ public class AudioPlayer : IDisposable
             _idleCutoffMs = value;
             if (_idleTimer != null)
                 _idleTimer.Interval = _idleCutoffMs;
+        }
+    }
+
+    public bool IsEnabled
+    {
+        get => _isEnabled;
+        set
+        {
+            _isEnabled = value;
+            if (!_isEnabled)
+            {
+                // If disabling, stop any current playback
+                StopSqueak();
+            }
         }
     }
 
@@ -325,6 +340,12 @@ public class AudioPlayer : IDisposable
 
     public void OnMovement()
     {
+        // Don't play audio if disabled
+        if (!_isEnabled)
+        {
+            return;
+        }
+        
         // Don't play audio during startup delay
         if (!_isInitialized)
         {
@@ -395,6 +416,30 @@ public class AudioPlayer : IDisposable
             });
             TriggerSoundCompleted?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    public void ReleaseFileLocks()
+    {
+        // Stop any playing audio
+        StopSqueak();
+        
+        // Dispose all file readers to release file locks
+        foreach (var reader in _squeakReaders)
+        {
+            reader?.Dispose();
+        }
+        _squeakReaders.Clear();
+        foreach (var reader in _triggerReaders)
+        {
+            reader?.Dispose();
+        }
+        _triggerReaders.Clear();
+        
+        // Dispose wave output
+        _waveOut?.Dispose();
+        _waveOut = null;
+        _loopStream?.Dispose();
+        _loopStream = null;
     }
 
     public void Dispose()

@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.IO;
 using System.Windows.Forms;
+using System.Linq;
 using NubRub.Models;
 using Microsoft.Win32;
 using System.Threading;
@@ -20,7 +22,7 @@ static class Program
     private static AppConfig? _config;
 
     [STAThread]
-    static void Main()
+    static void Main(string[] args)
     {
         // Ensure only one instance is running
         bool createdNew;
@@ -92,6 +94,17 @@ static class Program
             _mainForm = new MainForm();
             _debugWindow?.Log("MainForm created");
             
+            // Check for command-line arguments (file path)
+            string? nubrubFilePath = null;
+            if (args.Length > 0 && !string.IsNullOrWhiteSpace(args[0]))
+            {
+                string arg = args[0].Trim('"');
+                if (File.Exists(arg) && Path.GetExtension(arg).Equals(".nubrub", StringComparison.OrdinalIgnoreCase))
+                {
+                    nubrubFilePath = arg;
+                }
+            }
+            
             // Wire up DebugLog BEFORE registration so we can see registration errors
             _rawInputHandler.DebugLog += (s, msg) => _debugWindow?.Log(msg);
             
@@ -115,6 +128,11 @@ static class Program
             _trayIcon.StartWithWindowsToggled += OnStartWithWindowsToggled;
             _trayIcon.UpdateCheckRequested += OnUpdateCheckRequested;
             _trayIcon.ExitRequested += OnExitRequested;
+            _trayIcon.AudioPackCreateRequested += OnAudioPackCreateRequested;
+            _trayIcon.AudioPackEditRequested += OnAudioPackEditRequested;
+            _trayIcon.AudioPackExportRequested += OnAudioPackExportRequested;
+            _trayIcon.AudioPackImportRequested += OnAudioPackImportRequested;
+            _trayIcon.AudioPackDeleteRequested += OnAudioPackDeleteRequested;
 
             // Try to match saved device
             try
@@ -294,7 +312,38 @@ static class Program
                 UpdateStartupRegistry(_config.Startup.RunAtLogin);
             }
 
-                Application.Run(_mainForm);
+            // Register file association for .nubrub files if not already registered
+            try
+            {
+                if (!FileAssociationManager.IsFileAssociationRegistered())
+                {
+                    string iconPath = FileAssociationManager.GetIconPath();
+                    FileAssociationManager.RegisterFileAssociation(Application.ExecutablePath, iconPath);
+                    _debugWindow?.Log("File association registered for .nubrub files");
+                }
+            }
+            catch (Exception ex)
+            {
+                _debugWindow?.Log($"Failed to register file association: {ex.Message}");
+            }
+
+            // If a .nubrub file was provided via command line, import it after a short delay
+            if (nubrubFilePath != null && _packManager != null)
+            {
+                System.Threading.Tasks.Task.Delay(500).ContinueWith(_ =>
+                {
+                    if (_mainForm != null && _mainForm.InvokeRequired)
+                    {
+                        _mainForm.Invoke(new Action(() => ImportNubrubFile(nubrubFilePath)));
+                    }
+                    else
+                    {
+                        ImportNubrubFile(nubrubFilePath);
+                    }
+                });
+            }
+
+            Application.Run(_mainForm);
             }
             catch (Exception ex)
             {
@@ -391,6 +440,708 @@ static class Program
     private static void OnConfigPanelRequested(object? sender, EventArgs e)
     {
         ShowConfigPanel();
+    }
+
+    private static void OnAudioPackCreateRequested(object? sender, EventArgs e)
+    {
+        if (_mainForm == null)
+            return;
+
+        if (_mainForm.InvokeRequired)
+        {
+            _mainForm.Invoke(new Action<object?, EventArgs>(OnAudioPackCreateRequested), sender, e);
+            return;
+        }
+
+        try
+        {
+            // Determine the owner form - use config panel if it's open, otherwise use null (top-level)
+            Form? ownerForm = null;
+            if (_configPanel != null && _configPanel.Visible)
+            {
+                ownerForm = _configPanel;
+            }
+            // MainForm is always hidden, so we use null to make it a top-level window
+
+            var wizard = new AudioPackWizard(_packManager);
+            if (wizard.ShowDialog(ownerForm) == DialogResult.OK && !string.IsNullOrEmpty(wizard.CreatedPackId))
+            {
+                // Pack was created successfully, select it
+                if (_config != null && _packManager != null)
+                {
+                    // Get the pack name for the success message
+                    var createdPack = _packManager.GetPack(wizard.CreatedPackId);
+                    string packName = createdPack?.Name ?? wizard.CreatedPackId;
+                    
+                    _config.Audio.AudioPack = wizard.CreatedPackId;
+                    _configManager?.Save(_config);
+                    
+                    // Refresh config panel if open
+                    if (_configPanel != null && _configPanel.Visible)
+                    {
+                        try
+                        {
+                            _configPanel.PopulateAudioPacks(wizard.CreatedPackId);
+                        }
+                        catch { }
+                    }
+                    
+                    // Reload audio player with new pack
+                    if (_audioPlayer != null)
+                    {
+                        _audioPlayer.AudioPack = wizard.CreatedPackId;
+                    }
+                    
+                    // Show success message
+                    MessageBox.Show(
+                        $"Audio pack '{packName}' has been created successfully and is now selected as the current pack.",
+                        "Pack Created",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to open wizard: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private static void OnAudioPackEditRequested(object? sender, EventArgs e)
+    {
+        if (_mainForm == null || _packManager == null)
+            return;
+
+        if (_mainForm.InvokeRequired)
+        {
+            _mainForm.Invoke(new Action<object?, EventArgs>(OnAudioPackEditRequested), sender, e);
+            return;
+        }
+
+        // Declare variables at method scope so they're accessible in catch block
+        AudioPackInfo? selectedPack = null;
+        string? previousPackId = null;
+        bool isCurrentlyActive = false;
+
+        try
+        {
+            // Get all non-built-in packs for selection
+            var allPacks = _packManager.GetAllPacks();
+            var customPacks = allPacks.Where(p => !p.IsBuiltIn).ToList();
+
+            if (customPacks.Count == 0)
+            {
+                MessageBox.Show(
+                    "No custom audio packs available to edit.\n\nCreate a custom pack first using the 'Create...' option.",
+                    "No Packs Available",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            // Show pack selection dialog
+            using var selectDialog = new Form
+            {
+                Text = "Edit Audio Pack",
+                Size = new System.Drawing.Size(400, 200),
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                StartPosition = FormStartPosition.CenterScreen
+            };
+
+            var label = new Label
+            {
+                Text = "Select pack to edit:",
+                Location = new System.Drawing.Point(20, 20),
+                AutoSize = true
+            };
+            selectDialog.Controls.Add(label);
+
+            var packComboBox = new ComboBox
+            {
+                Location = new System.Drawing.Point(20, 50),
+                Size = new System.Drawing.Size(340, 23),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            foreach (var pack in customPacks)
+            {
+                string displayName = string.IsNullOrWhiteSpace(pack.Version)
+                    ? pack.Name
+                    : $"{pack.Name} ({pack.Version})";
+                packComboBox.Items.Add(new { DisplayName = displayName, Pack = pack });
+            }
+            packComboBox.DisplayMember = "DisplayName";
+            packComboBox.SelectedIndex = 0;
+            selectDialog.Controls.Add(packComboBox);
+
+            var okButton = new Button
+            {
+                Text = "Edit",
+                Location = new System.Drawing.Point(200, 100),
+                Size = new System.Drawing.Size(75, 30),
+                DialogResult = DialogResult.OK
+            };
+            selectDialog.Controls.Add(okButton);
+
+            var cancelButton = new Button
+            {
+                Text = "Cancel",
+                Location = new System.Drawing.Point(285, 100),
+                Size = new System.Drawing.Size(75, 30),
+                DialogResult = DialogResult.Cancel
+            };
+            selectDialog.Controls.Add(cancelButton);
+            selectDialog.CancelButton = cancelButton;
+            selectDialog.AcceptButton = okButton;
+
+            // Determine the owner form
+            Form? ownerForm = null;
+            if (_configPanel != null && _configPanel.Visible)
+            {
+                ownerForm = _configPanel;
+            }
+            
+            if (selectDialog.ShowDialog(ownerForm) == DialogResult.OK && packComboBox.SelectedItem != null)
+            {
+                var selectedItem = packComboBox.SelectedItem;
+                var packProperty = selectedItem.GetType().GetProperty("Pack");
+                if (packProperty != null)
+                {
+                    selectedPack = packProperty.GetValue(selectedItem) as AudioPackInfo;
+                    if (selectedPack != null)
+                    {
+                        // Check if the pack being edited is currently active
+                        isCurrentlyActive = _config != null && 
+                            selectedPack.PackId == _config.Audio.AudioPack;
+                        
+                        // Always release file locks and disable AudioPlayer when editing
+                        // This ensures files are not locked, even if pack is not currently active
+                        if (_audioPlayer != null)
+                        {
+                            previousPackId = _audioPlayer.AudioPack;
+                            
+                            // Step 1: Stop all audio playback first
+                            _audioPlayer.StopSqueak();
+                            
+                            if (isCurrentlyActive)
+                            {
+                                // Step 2: Switch to a built-in pack first (this releases file locks)
+                                var availablePacks = _packManager.GetAllPacks();
+                                var builtInPack = availablePacks.FirstOrDefault(p => p.IsBuiltIn);
+                                if (builtInPack != null)
+                                {
+                                    _audioPlayer.AudioPack = builtInPack.PackId;
+                                    // Give it more time to fully release the file locks
+                                    System.Threading.Thread.Sleep(500);
+                                    
+                                    // Double-check: ensure we're not still using the custom pack
+                                    if (_audioPlayer.AudioPack == selectedPack.PackId)
+                                    {
+                                        // Force release locks and try again
+                                        _audioPlayer.ReleaseFileLocks();
+                                        _audioPlayer.AudioPack = builtInPack.PackId;
+                                        System.Threading.Thread.Sleep(500);
+                                    }
+                                }
+                                else
+                                {
+                                    // If no built-in pack available, just release locks
+                                    _audioPlayer.ReleaseFileLocks();
+                                    System.Threading.Thread.Sleep(500);
+                                }
+                            }
+                            else
+                            {
+                                // Pack is not active, but release locks anyway to be safe
+                                // This handles cases where files might still be locked from previous loads
+                                _audioPlayer.ReleaseFileLocks();
+                                System.Threading.Thread.Sleep(200);
+                            }
+                            
+                            // Step 3: Disable AudioPlayer to prevent it from responding to movement
+                            _audioPlayer.IsEnabled = false;
+                        }
+                        
+                        // Open wizard in edit mode
+                        var wizard = new AudioPackWizard(_packManager, selectedPack, _audioPlayer);
+                        if (wizard.ShowDialog(ownerForm) == DialogResult.OK && !string.IsNullOrEmpty(wizard.CreatedPackId))
+                        {
+                            // Pack was updated/created successfully
+                            if (_config != null && _packManager != null)
+                            {
+                                // Get the pack name for the success message
+                                var updatedPack = _packManager.GetPack(wizard.CreatedPackId);
+                                string packName = updatedPack?.Name ?? wizard.CreatedPackId;
+                                
+                                _config.Audio.AudioPack = wizard.CreatedPackId;
+                                _configManager?.Save(_config);
+                                
+                                // Refresh config panel if open
+                                if (_configPanel != null && _configPanel.Visible)
+                                {
+                                    try
+                                    {
+                                        _configPanel.PopulateAudioPacks(wizard.CreatedPackId);
+                                    }
+                                    catch { }
+                                }
+                                
+                                // Step 5: Restore the original pack (or updated pack) and re-enable AudioPlayer
+                                if (_audioPlayer != null)
+                                {
+                                    _audioPlayer.AudioPack = wizard.CreatedPackId;
+                                    // Re-enable AudioPlayer
+                                    _audioPlayer.IsEnabled = true;
+                                }
+                                
+                                // Show success message
+                                string message = selectedPack.PackId == wizard.CreatedPackId
+                                    ? $"Audio pack '{packName}' has been updated successfully."
+                                    : $"Audio pack '{packName}' has been created successfully.";
+                                
+                                MessageBox.Show(
+                                    message,
+                                    "Pack Saved",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                            }
+                        }
+                        else
+                        {
+                            // Wizard was cancelled - restore the previous pack and re-enable AudioPlayer
+                            if (isCurrentlyActive && previousPackId != null && _audioPlayer != null)
+                            {
+                                _audioPlayer.AudioPack = previousPackId;
+                                // Re-enable AudioPlayer
+                                _audioPlayer.IsEnabled = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to edit audio pack: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            
+            // On error, try to restore the previous pack if it was active
+            if (selectedPack != null && isCurrentlyActive && previousPackId != null && _audioPlayer != null)
+            {
+                try
+                {
+                    _audioPlayer.AudioPack = previousPackId;
+                }
+                catch { }
+            }
+        }
+    }
+
+    private static void OnAudioPackExportRequested(object? sender, EventArgs e)
+    {
+        if (_mainForm == null || _packManager == null)
+            return;
+
+        if (_mainForm.InvokeRequired)
+        {
+            _mainForm.Invoke(new Action<object?, EventArgs>(OnAudioPackExportRequested), sender, e);
+            return;
+        }
+
+        try
+        {
+            // Get all non-built-in packs
+            var allPacks = _packManager.GetAllPacks();
+            var customPacks = allPacks.Where(p => !p.IsBuiltIn).ToList();
+
+            if (customPacks.Count == 0)
+            {
+                MessageBox.Show(
+                    "No custom audio packs available to export.\n\nCreate a custom pack first using the 'Create...' option.",
+                    "No Packs Available",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            // Show pack selection dialog
+            using var selectDialog = new Form
+            {
+                Text = "Export Audio Pack",
+                Size = new System.Drawing.Size(400, 200),
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                StartPosition = FormStartPosition.CenterScreen
+            };
+
+            var label = new Label
+            {
+                Text = "Select pack to export:",
+                Location = new System.Drawing.Point(20, 20),
+                AutoSize = true
+            };
+            selectDialog.Controls.Add(label);
+
+            var packComboBox = new ComboBox
+            {
+                Location = new System.Drawing.Point(20, 50),
+                Size = new System.Drawing.Size(340, 23),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            foreach (var pack in customPacks)
+            {
+                string displayName = string.IsNullOrWhiteSpace(pack.Version)
+                    ? pack.Name
+                    : $"{pack.Name} ({pack.Version})";
+                packComboBox.Items.Add(new { DisplayName = displayName, Pack = pack });
+            }
+            packComboBox.DisplayMember = "DisplayName";
+            packComboBox.SelectedIndex = 0;
+            selectDialog.Controls.Add(packComboBox);
+
+            var okButton = new Button
+            {
+                Text = "Export",
+                Location = new System.Drawing.Point(200, 100),
+                Size = new System.Drawing.Size(75, 30),
+                DialogResult = DialogResult.OK
+            };
+            selectDialog.Controls.Add(okButton);
+
+            var cancelButton = new Button
+            {
+                Text = "Cancel",
+                Location = new System.Drawing.Point(285, 100),
+                Size = new System.Drawing.Size(75, 30),
+                DialogResult = DialogResult.Cancel
+            };
+            selectDialog.Controls.Add(cancelButton);
+            selectDialog.CancelButton = cancelButton;
+            selectDialog.AcceptButton = okButton;
+
+            if (selectDialog.ShowDialog(_mainForm) == DialogResult.OK && packComboBox.SelectedItem != null)
+            {
+                var selectedItem = packComboBox.SelectedItem;
+                var packProperty = selectedItem.GetType().GetProperty("Pack");
+                if (packProperty != null)
+                {
+                    var selectedPack = packProperty.GetValue(selectedItem) as AudioPackInfo;
+                    if (selectedPack != null)
+                    {
+                        // Show save dialog
+                        using var saveDialog = new SaveFileDialog
+                        {
+                            Filter = "NubRub Audio Pack (*.nubrub)|*.nubrub|All files (*.*)|*.*",
+                            FilterIndex = 1,
+                            DefaultExt = "nubrub",
+                            FileName = $"{selectedPack.Name}.nubrub"
+                        };
+
+                        if (saveDialog.ShowDialog() == DialogResult.OK)
+                        {
+                            if (_packManager.ExportPack(selectedPack, saveDialog.FileName))
+                            {
+                                MessageBox.Show(
+                                    $"Audio pack '{selectedPack.Name}' has been exported successfully.",
+                                    "Export Successful",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                            }
+                            else
+                            {
+                                MessageBox.Show(
+                                    $"Failed to export audio pack '{selectedPack.Name}'.",
+                                    "Export Failed",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to export audio pack: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private static void OnAudioPackImportRequested(object? sender, EventArgs e)
+    {
+        if (_mainForm == null || _packManager == null)
+            return;
+
+        if (_mainForm.InvokeRequired)
+        {
+            _mainForm.Invoke(new Action<object?, EventArgs>(OnAudioPackImportRequested), sender, e);
+            return;
+        }
+
+        try
+        {
+            using var openDialog = new OpenFileDialog
+            {
+                Filter = "NubRub Audio Pack (*.nubrub)|*.nubrub|All files (*.*)|*.*",
+                FilterIndex = 1,
+                Title = "Import Audio Pack"
+            };
+
+            if (openDialog.ShowDialog() == DialogResult.OK)
+            {
+                ImportNubrubFile(openDialog.FileName);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to import audio pack: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private static void OnAudioPackDeleteRequested(object? sender, EventArgs e)
+    {
+        if (_mainForm == null || _packManager == null)
+            return;
+
+        if (_mainForm.InvokeRequired)
+        {
+            _mainForm.Invoke(new Action<object?, EventArgs>(OnAudioPackDeleteRequested), sender, e);
+            return;
+        }
+
+        try
+        {
+            // Get all non-built-in packs
+            var allPacks = _packManager.GetAllPacks();
+            var customPacks = allPacks.Where(p => !p.IsBuiltIn).ToList();
+
+            if (customPacks.Count == 0)
+            {
+                MessageBox.Show(
+                    "No custom audio packs available to delete.\n\nOnly custom packs can be deleted. Built-in packs cannot be removed.",
+                    "No Packs Available",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            // Show pack selection dialog
+            using var selectDialog = new Form
+            {
+                Text = "Delete Audio Pack",
+                Size = new System.Drawing.Size(400, 200),
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                StartPosition = FormStartPosition.CenterScreen
+            };
+
+            var label = new Label
+            {
+                Text = "Select pack to delete:",
+                Location = new System.Drawing.Point(20, 20),
+                AutoSize = true
+            };
+            selectDialog.Controls.Add(label);
+
+            var packComboBox = new ComboBox
+            {
+                Location = new System.Drawing.Point(20, 50),
+                Size = new System.Drawing.Size(340, 23),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            foreach (var pack in customPacks)
+            {
+                string displayName = string.IsNullOrWhiteSpace(pack.Version)
+                    ? pack.Name
+                    : $"{pack.Name} ({pack.Version})";
+                packComboBox.Items.Add(new { DisplayName = displayName, Pack = pack });
+            }
+            packComboBox.DisplayMember = "DisplayName";
+            packComboBox.SelectedIndex = 0;
+            selectDialog.Controls.Add(packComboBox);
+
+            var okButton = new Button
+            {
+                Text = "Delete",
+                Location = new System.Drawing.Point(200, 100),
+                Size = new System.Drawing.Size(75, 30),
+                DialogResult = DialogResult.OK
+            };
+            selectDialog.Controls.Add(okButton);
+
+            var cancelButton = new Button
+            {
+                Text = "Cancel",
+                Location = new System.Drawing.Point(285, 100),
+                Size = new System.Drawing.Size(75, 30),
+                DialogResult = DialogResult.Cancel
+            };
+            selectDialog.Controls.Add(cancelButton);
+            selectDialog.CancelButton = cancelButton;
+            selectDialog.AcceptButton = okButton;
+
+            // Determine the owner form
+            Form? ownerForm = null;
+            if (_configPanel != null && _configPanel.Visible)
+            {
+                ownerForm = _configPanel;
+            }
+            
+            if (selectDialog.ShowDialog(ownerForm) == DialogResult.OK && packComboBox.SelectedItem != null)
+            {
+                var selectedItem = packComboBox.SelectedItem;
+                var packProperty = selectedItem.GetType().GetProperty("Pack");
+                if (packProperty != null)
+                {
+                    var selectedPack = packProperty.GetValue(selectedItem) as AudioPackInfo;
+                    if (selectedPack != null && !string.IsNullOrEmpty(selectedPack.PackDirectory))
+                    {
+                        // Show confirmation dialog
+                        string packName = string.IsNullOrWhiteSpace(selectedPack.Version)
+                            ? selectedPack.Name
+                            : $"{selectedPack.Name} ({selectedPack.Version})";
+                        
+                        var confirmResult = MessageBox.Show(
+                            $"Are you sure you want to delete the audio pack '{packName}'?\n\nThis action cannot be undone. All files in this pack will be permanently deleted.",
+                            "Confirm Delete",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Warning,
+                            MessageBoxDefaultButton.Button2);
+                        
+                        if (confirmResult == DialogResult.Yes)
+                        {
+                            // Check if the pack is currently active
+                            bool isCurrentlyActive = _config != null && 
+                                selectedPack.PackId == _config.Audio.AudioPack;
+                            
+                            // If currently active, switch to built-in pack first
+                            if (isCurrentlyActive && _audioPlayer != null)
+                            {
+                                var availablePacks = _packManager.GetAllPacks();
+                                var builtInPack = availablePacks.FirstOrDefault(p => p.IsBuiltIn);
+                                if (builtInPack != null)
+                                {
+                                    _audioPlayer.StopSqueak();
+                                    _audioPlayer.ReleaseFileLocks();
+                                    System.Threading.Thread.Sleep(500);
+                                    _audioPlayer.AudioPack = builtInPack.PackId;
+                                    System.Threading.Thread.Sleep(200);
+                                }
+                            }
+                            
+                            // Delete the pack directory
+                            try
+                            {
+                                if (Directory.Exists(selectedPack.PackDirectory))
+                                {
+                                    Directory.Delete(selectedPack.PackDirectory, true);
+                                }
+                                
+                                // Update config if this pack was active
+                                if (isCurrentlyActive && _config != null)
+                                {
+                                    var availablePacks = _packManager.GetAllPacks();
+                                    var builtInPack = availablePacks.FirstOrDefault(p => p.IsBuiltIn);
+                                    if (builtInPack != null)
+                                    {
+                                        _config.Audio.AudioPack = builtInPack.PackId;
+                                        _configManager?.Save(_config);
+                                        
+                                        if (_audioPlayer != null)
+                                        {
+                                            _audioPlayer.AudioPack = builtInPack.PackId;
+                                        }
+                                    }
+                                }
+                                
+                                // Refresh config panel if open
+                                if (_configPanel != null && _configPanel.Visible)
+                                {
+                                    try
+                                    {
+                                        string currentPack = _config?.Audio.AudioPack ?? "squeak";
+                                        _configPanel.PopulateAudioPacks(currentPack);
+                                    }
+                                    catch { }
+                                }
+                                
+                                // Show success message
+                                MessageBox.Show(
+                                    $"Audio pack '{packName}' has been deleted successfully.",
+                                    "Delete Successful",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show(
+                                    $"Failed to delete audio pack: {ex.Message}\n\nMake sure the pack is not in use and try again.",
+                                    "Delete Failed",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to delete audio pack: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private static void ImportNubrubFile(string filePath)
+    {
+        if (_packManager == null)
+            return;
+
+        try
+        {
+            // Show import wizard/dialog
+            var importWizard = new AudioPackImportWizard(_packManager, filePath);
+            if (importWizard.ShowDialog(_mainForm) == DialogResult.OK && !string.IsNullOrEmpty(importWizard.ImportedPackId))
+            {
+                // Pack was imported successfully, select it
+                if (_config != null && _packManager != null)
+                {
+                    // Get the pack name for the success message
+                    var importedPack = _packManager.GetPack(importWizard.ImportedPackId);
+                    string packName = importedPack?.Name ?? importWizard.ImportedPackId;
+                    
+                    _config.Audio.AudioPack = importWizard.ImportedPackId;
+                    _configManager?.Save(_config);
+                    
+                    // Refresh config panel if open
+                    if (_configPanel != null && _configPanel.Visible)
+                    {
+                        try
+                        {
+                            _configPanel.PopulateAudioPacks(importWizard.ImportedPackId);
+                        }
+                        catch { }
+                    }
+                    
+                    // Reload audio player with new pack
+                    if (_audioPlayer != null)
+                    {
+                        _audioPlayer.AudioPack = importWizard.ImportedPackId;
+                    }
+                    
+                    // Show success message
+                    MessageBox.Show(
+                        $"Audio pack '{packName}' has been imported successfully and is now selected as the current pack.",
+                        "Import Successful",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to import audio pack: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     private static void OnDebugWindowRequested(object? sender, EventArgs e)
