@@ -1,11 +1,11 @@
 # NubRub
 
-A Windows 11 system tray application that plays squeaky sounds when the TrackPoint (Lenovo ThinkPad pointing stick) is used, with an additional feature that plays a trigger sound after 25 seconds of continuous wiggling.
+A Windows 11 system tray application that plays sounds when the TrackPoint (Lenovo ThinkPad pointing stick) is used, with an additional feature that plays a trigger sound after 25 seconds of continuous wiggling.
 
 ## Features
 
 - **Per-device filtering**: Select your TrackPoint from a list of HID devices
-- **Squeak-on-activity**: Plays a looped squeak sound while the TrackPoint is moving
+- **Sound-on-activity**: Plays a sound while the TrackPoint is moving
 - **25-second wiggle detection**: After 25 seconds of continuous movement (with <2s breaks allowed), plays a distinct trigger sound
 - **System tray integration**: Runs minimized in the system tray
 - **Configuration panel**: Easy device selection and settings adjustment
@@ -81,5 +81,9 @@ The application includes built-in audio packs (Squeak, NSFW, Bugs, Glass). Custo
 - **Import...** - Import `.nubrub` files to add packs
 - **Delete...** - Delete custom packs (with confirmation)
 
-Custom audio packs can also be created manually by editing JSON files in `%LOCALAPPDATA%\NubRub\AudioPacks\`. See `CUSTOM_AUDIO_PACKS.md` for detailed instructions.
+Custom audio packs can also be created manually by editing JSON files in `%LOCALAPPDATA%\NubRub\AudioPacks\`. See `docs/CUSTOM_AUDIO_PACKS.md` for detailed instructions.
+
+## Security
+
+For security information, including vulnerability reporting and security best practices, see `docs/SECURITY.md`.
 
