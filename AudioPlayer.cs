@@ -111,7 +111,6 @@ public class AudioPlayer : IDisposable
             }
             _triggerReaders.Clear();
 
-            // Get pack info
             var packInfo = _packManager?.GetPack(_audioPack);
             if (packInfo == null)
             {
@@ -182,7 +181,6 @@ public class AudioPlayer : IDisposable
         }
         catch
         {
-            // Silently fail
         }
     }
 
@@ -232,7 +230,6 @@ public class AudioPlayer : IDisposable
         }
         catch
         {
-            // Silently fail
         }
     }
 
@@ -261,7 +258,6 @@ public class AudioPlayer : IDisposable
         }
         catch
         {
-            // Silently fail on audio errors
         }
     }
     
@@ -313,7 +309,6 @@ public class AudioPlayer : IDisposable
         }
         catch
         {
-            // Silently fail
             _isPlaying = false;
         }
     }
@@ -334,7 +329,6 @@ public class AudioPlayer : IDisposable
         }
         catch
         {
-            // Silently fail
         }
     }
 
@@ -379,9 +373,8 @@ public class AudioPlayer : IDisposable
         {
             // Stop all squeak sounds immediately
             StopSqueak();
-            _hasRecentMovement = false; // Prevent new sounds from starting
+            _hasRecentMovement = false;
             
-            // Set cooldown flag
             _isInCooldown = true;
 
             // Randomly select a trigger sound if multiple are available
@@ -407,8 +400,6 @@ public class AudioPlayer : IDisposable
         }
         catch
         {
-            // Silently fail
-            // Still set cooldown even on error
             _isInCooldown = true;
             System.Threading.Tasks.Task.Delay(TRIGGER_COOLDOWN_MS).ContinueWith(_ =>
             {

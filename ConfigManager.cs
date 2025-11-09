@@ -53,7 +53,6 @@ public class ConfigManager
         }
         catch
         {
-            // Silently fail on save errors
         }
     }
 

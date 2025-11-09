@@ -39,7 +39,6 @@ public class AudioPackManager
         string nubRubPath = Path.Combine(appDataPath, "NubRub");
         _audioPacksPath = Path.Combine(nubRubPath, AUDIO_PACKS_FOLDER);
         
-        // Create directory if it doesn't exist
         try
         {
             Directory.CreateDirectory(_audioPacksPath);
@@ -47,7 +46,6 @@ public class AudioPackManager
         }
         catch
         {
-            // Silently fail - will be handled when trying to load packs
         }
     }
 
@@ -177,7 +175,6 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
         }
         catch
         {
-            // Silently fail - instruction file is optional
         }
     }
 
@@ -199,7 +196,6 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
         }
         catch
         {
-            // Silently fail - return only built-in packs
         }
 
         return packs;
@@ -210,12 +206,10 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
     /// </summary>
     public AudioPackInfo? GetPack(string packId)
     {
-        // Check built-in packs first
         var builtIn = _builtInPacks.FirstOrDefault(p => p.PackId.Equals(packId, StringComparison.OrdinalIgnoreCase));
         if (builtIn != null)
             return builtIn;
 
-        // Check custom packs
         try
         {
             if (Directory.Exists(_audioPacksPath))
@@ -226,7 +220,6 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
         }
         catch
         {
-            // Silently fail
         }
 
         return null;
@@ -244,7 +237,6 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
             if (!Directory.Exists(_audioPacksPath))
                 return packs;
 
-            // Get all subdirectories (each represents an audio pack)
             var packDirectories = Directory.GetDirectories(_audioPacksPath);
             
             foreach (var packDir in packDirectories)
@@ -287,7 +279,6 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
                         continue;
                     }
 
-                    // Set pack directory and ID
                     packInfo.PackDirectory = packDir;
                     packInfo.PackId = Path.GetFileName(packDir);
                     packInfo.IsBuiltIn = false;
@@ -392,7 +383,6 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
     {
         try
         {
-            // Get full canonical paths
             string fullPath = Path.GetFullPath(path);
             string fullBase = Path.GetFullPath(baseDirectory);
 
@@ -481,13 +471,11 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
 
         try
         {
-            // Create or overwrite the output file
             if (File.Exists(outputPath))
             {
                 File.Delete(outputPath);
             }
 
-            // Create ZIP archive
             using (var zipArchive = ZipFile.Open(outputPath, ZipArchiveMode.Create))
             {
                 // Add pack.json
@@ -498,7 +486,6 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
                 }
                 else
                 {
-                    // Create pack.json from pack info if it doesn't exist
                     var packJson = new
                     {
                         name = pack.Name,

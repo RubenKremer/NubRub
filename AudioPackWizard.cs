@@ -61,7 +61,6 @@ public partial class AudioPackWizard : Form
         
         if (_isEditMode && existingPack != null)
         {
-            // Create a copy for editing
             _currentPack = new AudioPackInfo
             {
                 Name = existingPack.Name,
@@ -126,7 +125,6 @@ public partial class AudioPackWizard : Form
         }
         catch
         {
-            // Silently fail
         }
     }
 
@@ -215,13 +213,8 @@ public partial class AudioPackWizard : Form
         this.Controls.Add(_cancelButton);
         this.CancelButton = _cancelButton;
 
-        // Initialize Step 1 controls
         InitializeStep1();
-        
-        // Initialize Step 2 controls
         InitializeStep2();
-        
-        // Initialize Step 3 controls
         InitializeStep3();
     }
 
@@ -464,7 +457,6 @@ public partial class AudioPackWizard : Form
         if (_stepLabel != null)
             _stepLabel.Text = $"Step {_currentStep} of {TOTAL_STEPS}";
         
-        // Update button visibility for final step in edit mode
         if (_currentStep == TOTAL_STEPS && _isEditMode)
         {
             // Hide Previous, Next buttons, show Update and Save as new buttons
@@ -724,7 +716,6 @@ public partial class AudioPackWizard : Form
             return false;
         }
 
-        // Check for invalid characters
         char[] invalidChars = Path.GetInvalidFileNameChars();
         if (packName.IndexOfAny(invalidChars) >= 0)
         {
@@ -734,7 +725,6 @@ public partial class AudioPackWizard : Form
             return false;
         }
 
-        // Check if pack name already exists (but allow same name when editing the same pack)
         if (_packManager != null)
         {
             var allPacks = _packManager.GetAllPacks();
@@ -788,7 +778,6 @@ public partial class AudioPackWizard : Form
                     continue;
                 }
 
-                // Check file size (50 MB limit)
                 var fileInfo = new FileInfo(fileName);
                 if (fileInfo.Length > 50 * 1024 * 1024)
                 {
@@ -850,7 +839,6 @@ public partial class AudioPackWizard : Form
 
     private void UpdateStep2ButtonStates()
     {
-        // Update rub sounds buttons
         if (_rubSoundsListBox != null)
         {
             bool hasSelection = _rubSoundsListBox.SelectedIndices.Count > 0;
@@ -862,7 +850,6 @@ public partial class AudioPackWizard : Form
                 _markAsFinishButton.Enabled = hasSelection;
         }
 
-        // Update finish sounds buttons
         if (_finishSoundsListBox != null)
         {
             bool hasSelection = _finishSoundsListBox.SelectedIndices.Count > 0;
@@ -962,7 +949,6 @@ public partial class AudioPackWizard : Form
 
     private void PlaySelectedSound()
     {
-        // Check rub sounds list first
         if (_rubSoundsListBox != null && _rubSoundsListBox.SelectedIndices.Count == 1)
         {
             int selectedIndex = _rubSoundsListBox.SelectedIndex;
@@ -974,7 +960,6 @@ public partial class AudioPackWizard : Form
             }
         }
 
-        // Check finish sounds list
         if (_finishSoundsListBox != null && _finishSoundsListBox.SelectedIndices.Count == 1)
         {
             int selectedIndex = _finishSoundsListBox.SelectedIndex;
@@ -1028,7 +1013,6 @@ public partial class AudioPackWizard : Form
         }
         catch
         {
-            // Silently fail
         }
     }
 
@@ -1068,8 +1052,6 @@ public partial class AudioPackWizard : Form
                 return false;
             }
 
-            // Check if we're saving as a new pack from an existing pack with the same name
-            // In that case, automatically rename to "{packname} Copy" or "{packname} Copy (n)"
             bool isSavingAsNewFromEdit = _isEditMode && _originalPack != null;
             bool isSameDirectory = isSavingAsNewFromEdit && 
                 _originalPack != null &&
@@ -1097,24 +1079,20 @@ public partial class AudioPackWizard : Form
                         newName = $"{baseName} Copy ({copyNumber})";
                     }
                     
-                    // Update pack name
                     _currentPack.Name = newName;
                     folderName = SanitizeDirectoryName(newName);
                 }
             }
             
-            // Create pack directory
             string packDirectory = Path.Combine(_packManager.AudioPacksPath, folderName);
             
             // If same directory (saving as new with same folder name), copy files to temp location first
             string? tempCopyDirectory = null;
             if (isSameDirectory && Directory.Exists(packDirectory))
             {
-                // Copy files to temp directory first
                 tempCopyDirectory = Path.Combine(Path.GetTempPath(), $"NubRub_Temp_{Guid.NewGuid()}");
                 Directory.CreateDirectory(tempCopyDirectory);
                 
-                // Copy all files from original directory to temp
                 foreach (string sourcePath in _currentPack.RubSounds)
                 {
                     if (File.Exists(sourcePath))
@@ -1135,7 +1113,6 @@ public partial class AudioPackWizard : Form
                 }
             }
             
-            // Check if directory already exists (shouldn't happen after auto-rename, but check anyway)
             if (Directory.Exists(packDirectory))
             {
                 // Only show overwrite dialog if not saving as new from edit (shouldn't happen)
@@ -1170,7 +1147,6 @@ public partial class AudioPackWizard : Form
 
             Directory.CreateDirectory(packDirectory);
 
-            // Copy audio files to pack directory
             var rubSoundFileNames = new List<string>();
             foreach (string sourcePath in _currentPack.RubSounds)
             {
@@ -1230,10 +1206,9 @@ public partial class AudioPackWizard : Form
             // Clean up temp directory if created
             if (tempCopyDirectory != null && Directory.Exists(tempCopyDirectory))
             {
-                try { Directory.Delete(tempCopyDirectory, true); } catch { }
+                try { Directory.Delete(tempCopyDirectory, true); } catch {                 }
             }
-
-            // Create pack.json
+            
             var packJson = new
             {
                 name = _currentPack.Name,
@@ -1302,11 +1277,8 @@ public partial class AudioPackWizard : Form
 
         try
         {
-            // Always release file locks before updating, even if pack is not currently active
-            // This ensures files are not locked by AudioPlayer from previous loads
             if (_audioPlayer != null)
             {
-                // Check if this pack is currently active
                 bool isCurrentlyActive = _originalPack.PackId == _audioPlayer.AudioPack;
                 
                 if (isCurrentlyActive)
@@ -1341,17 +1313,13 @@ public partial class AudioPackWizard : Form
                 System.Threading.Thread.Sleep(200);
             }
             
-            // Increment version
             string newVersion = IncrementVersion(_currentPack.Version);
             _currentPack.Version = newVersion;
             
-            // Update pack name if changed
             _currentPack.Name = _packNameTextBox?.Text.Trim() ?? _currentPack.Name;
             
-            // Get existing pack directory
             string packDirectory = _originalPack.PackDirectory;
             
-            // Copy/update audio files
             var rubSoundFileNames = new List<string>();
             foreach (string sourcePath in _currentPack.RubSounds)
             {
@@ -1371,7 +1339,6 @@ public partial class AudioPackWizard : Form
                     continue;
                 }
                 
-                // Copy file (overwrite if exists) with retry mechanism
                 SafeCopyFile(sourcePath, destPath);
                 rubSoundFileNames.Add(fileName);
             }
@@ -1395,7 +1362,6 @@ public partial class AudioPackWizard : Form
                     continue;
                 }
                 
-                // Copy file (overwrite if exists) with retry mechanism
                 SafeCopyFile(sourcePath, destPath);
                 finishSoundFileNames.Add(fileName);
             }
@@ -1416,8 +1382,7 @@ public partial class AudioPackWizard : Form
                     catch { }
                 }
             }
-
-            // Update pack.json
+            
             var packJson = new
             {
                 name = _currentPack.Name,
@@ -1474,7 +1439,6 @@ public partial class AudioPackWizard : Form
                     }
                 }
                 
-                // Copy the file
                 File.Copy(sourcePath, destPath, false);
                 return; // Success
             }

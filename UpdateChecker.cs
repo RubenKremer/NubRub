@@ -60,7 +60,6 @@ public class UpdateChecker
             
             var response = await _httpClient.GetAsync(GitHubApiUrl);
             
-            // Check for 404 - no releases exist yet
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 progress?.Report("No releases found");
@@ -142,7 +141,6 @@ public class UpdateChecker
         }
         catch (HttpRequestException ex)
         {
-            // Check if we can get more details from the inner exception
             var errorMessage = ex.Message;
             if (ex.InnerException != null)
             {

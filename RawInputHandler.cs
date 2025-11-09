@@ -159,7 +159,6 @@ public class RawInputHandler
             uint size = (uint)Marshal.SizeOf(typeof(RAWINPUTDEVICELIST));
             uint deviceCount = 0;
             
-            // Get device count
             uint result = GetRawInputDeviceList(IntPtr.Zero, ref deviceCount, size);
             if (result == unchecked((uint)-1))
             {
@@ -176,7 +175,6 @@ public class RawInputHandler
             
             DebugLog?.Invoke(this, $"Found {deviceCount} raw input device(s)");
             
-            // Get device list
             IntPtr buffer = Marshal.AllocHGlobal((int)(deviceCount * size));
             try
             {

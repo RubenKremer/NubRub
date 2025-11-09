@@ -114,7 +114,6 @@ public partial class DebugWindow : Form
         }
         catch
         {
-            // Silently fail if logging fails
         }
     }
 
@@ -162,7 +161,6 @@ public partial class DebugWindow : Form
         }
         catch
         {
-            // Silently fail if clear fails
         }
     }
 }

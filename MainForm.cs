@@ -22,9 +22,8 @@ public partial class MainForm : Form
         this.FormBorderStyle = FormBorderStyle.None;
         this.Size = new Size(1, 1); // Need non-zero size for handle
         this.Location = new Point(-1000, -1000); // Move off-screen
-        this.Opacity = 0; // Make invisible
+        this.Opacity = 0;
         
-        // Set application icon if available
         Icon? appIcon = LoadApplicationIcon();
         if (appIcon != null)
         {

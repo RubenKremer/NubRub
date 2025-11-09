@@ -225,7 +225,6 @@ public partial class AudioPackImportWizard : Form
 
         try
         {
-            // Check if pack already exists
             var allPacks = _packManager.GetAllPacks();
             var existingPack = allPacks.FirstOrDefault(p => 
                 p.Name.Equals(_packInfo.Name, StringComparison.OrdinalIgnoreCase) && !p.IsBuiltIn);
@@ -265,7 +264,6 @@ public partial class AudioPackImportWizard : Form
                 return;
             }
 
-            // Create pack directory
             string packDirectory = Path.Combine(_packManager.AudioPacksPath, folderName);
             if (Directory.Exists(packDirectory))
             {
@@ -273,12 +271,10 @@ public partial class AudioPackImportWizard : Form
             }
             Directory.CreateDirectory(packDirectory);
 
-            // Copy pack.json
             string sourceJsonPath = Path.Combine(_tempExtractPath, "pack.json");
             string destJsonPath = Path.Combine(packDirectory, "pack.json");
             File.Copy(sourceJsonPath, destJsonPath, true);
 
-            // Copy all audio files
             var allFiles = new List<string>();
             allFiles.AddRange(_packInfo.RubSounds);
             allFiles.AddRange(_packInfo.FinishSounds);

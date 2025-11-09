@@ -34,7 +34,6 @@ public static class FileAssociationManager
                 {
                     key.SetValue("", FILE_TYPE_NAME);
                     
-                    // Set default icon
                     using (var iconKey = key.CreateSubKey("DefaultIcon"))
                     {
                         iconKey?.SetValue("", $"\"{iconPath}\",0");

@@ -44,7 +44,6 @@ static class Program
         ApplicationConfiguration.Initialize();
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
 
-            // Initialize components
             _configManager = new ConfigManager();
             _config = _configManager.Load();
             _packManager = new AudioPackManager();
@@ -66,7 +65,6 @@ static class Program
                 StartWithWindows = _config.Startup.RunAtLogin
             };
 
-            // Create debug window (but don't show it by default)
             try
             {
                 _debugWindow = new DebugWindow();
@@ -94,7 +92,6 @@ static class Program
             _mainForm = new MainForm();
             _debugWindow?.Log("MainForm created");
             
-            // Check for command-line arguments (file path)
             string? nubrubFilePath = null;
             if (args.Length > 0 && !string.IsNullOrWhiteSpace(args[0]))
             {
@@ -238,7 +235,6 @@ static class Program
                     _debugWindow?.Log("  - No mouse devices connected");
                     _debugWindow?.Log("  - Permission issues");
                     
-                    // Check if we're running as admin
                     try
                     {
                         var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
@@ -306,7 +302,6 @@ static class Program
                 _debugWindow?.Log("Use tray menu to select a device.");
             }
 
-            // Set up startup registry if needed
             if (_config != null)
             {
                 UpdateStartupRegistry(_config.Startup.RunAtLogin);
@@ -469,7 +464,6 @@ static class Program
                 // Pack was created successfully, select it
                 if (_config != null && _packManager != null)
                 {
-                    // Get the pack name for the success message
                     var createdPack = _packManager.GetPack(wizard.CreatedPackId);
                     string packName = createdPack?.Name ?? wizard.CreatedPackId;
                     
@@ -525,7 +519,6 @@ static class Program
 
         try
         {
-            // Get all non-built-in packs for selection
             var allPacks = _packManager.GetAllPacks();
             var customPacks = allPacks.Where(p => !p.IsBuiltIn).ToList();
 
@@ -611,7 +604,6 @@ static class Program
                     selectedPack = packProperty.GetValue(selectedItem) as AudioPackInfo;
                     if (selectedPack != null)
                     {
-                        // Check if the pack being edited is currently active
                         isCurrentlyActive = _config != null && 
                             selectedPack.PackId == _config.Audio.AudioPack;
                         
@@ -670,7 +662,6 @@ static class Program
                             // Pack was updated/created successfully
                             if (_config != null && _packManager != null)
                             {
-                                // Get the pack name for the success message
                                 var updatedPack = _packManager.GetPack(wizard.CreatedPackId);
                                 string packName = updatedPack?.Name ?? wizard.CreatedPackId;
                                 
@@ -750,7 +741,6 @@ static class Program
 
         try
         {
-            // Get all non-built-in packs
             var allPacks = _packManager.GetAllPacks();
             var customPacks = allPacks.Where(p => !p.IsBuiltIn).ToList();
 
@@ -911,7 +901,6 @@ static class Program
 
         try
         {
-            // Get all non-built-in packs
             var allPacks = _packManager.GetAllPacks();
             var customPacks = allPacks.Where(p => !p.IsBuiltIn).ToList();
 
@@ -1011,7 +1000,6 @@ static class Program
                         
                         if (confirmResult == DialogResult.Yes)
                         {
-                            // Check if the pack is currently active
                             bool isCurrentlyActive = _config != null && 
                                 selectedPack.PackId == _config.Audio.AudioPack;
                             
@@ -1038,7 +1026,6 @@ static class Program
                                     Directory.Delete(selectedPack.PackDirectory, true);
                                 }
                                 
-                                // Update config if this pack was active
                                 if (isCurrentlyActive && _config != null)
                                 {
                                     var availablePacks = _packManager.GetAllPacks();
@@ -1106,7 +1093,6 @@ static class Program
                 // Pack was imported successfully, select it
                 if (_config != null && _packManager != null)
                 {
-                    // Get the pack name for the success message
                     var importedPack = _packManager.GetPack(importWizard.ImportedPackId);
                     string packName = importedPack?.Name ?? importWizard.ImportedPackId;
                     
@@ -1166,13 +1152,11 @@ static class Program
         
         try
         {
-            // Clear device selection to allow all input through
             _rawInputHandler.ClearSelectedDevice();
             
             var detectionWindow = new DeviceDetectionWindow();
             DeviceInfo? detectedDevice = null;
             
-            // Set up event handler to detect input
             EventHandler<RawInputEventArgs>? detectionHandler = null;
             detectionHandler = (sender, e) =>
             {
@@ -1339,7 +1323,6 @@ static class Program
 
                     _configManager?.Save(_config);
 
-                    // Update components
                     if (_config.SelectedDevice != null)
                     {
                         _rawInputHandler?.SetSelectedDevice(_config.SelectedDevice.Handle);
@@ -1415,7 +1398,6 @@ static class Program
         }
         catch
         {
-            // Silently fail on registry errors
         }
     }
 
@@ -1445,7 +1427,6 @@ static class Program
             progressDialog.Show();
             Application.DoEvents();
 
-            // Check for updates
             var progress = new Progress<string>(status => progressDialog.SetStatus(status));
             var updateInfo = await updateChecker.CheckForUpdatesAsync(progress);
 
@@ -1497,7 +1478,6 @@ static class Program
                 return;
             }
 
-            // Update available - ask for confirmation
             progressDialog.Close();
             var result = MessageBox.Show(
                 $"A new version ({updateInfo.LatestVersion}) is available.\n\nCurrent version: {updateInfo.CurrentVersion}\n\nDownload and install now?",

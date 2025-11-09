@@ -216,7 +216,6 @@ public partial class ConfigPanel : Form
     {
         _audioPackComboBox.Items.Clear();
         
-        // Get all available packs (built-in and custom)
         var allPacks = _packManager?.GetAllPacks() ?? new List<AudioPackInfo>();
         
         foreach (var pack in allPacks)
@@ -230,7 +229,6 @@ public partial class ConfigPanel : Form
             _audioPackComboBox.Items.Add(new { DisplayName = displayName, PackId = pack.PackId });
         }
         
-        // Set display member
         _audioPackComboBox.DisplayMember = "DisplayName";
         _audioPackComboBox.ValueMember = "PackId";
 
@@ -298,19 +296,16 @@ public partial class ConfigPanel : Form
                 }
             }
 
-            // Ensure instruction file exists
             try
             {
                 string instructionFilePath = Path.Combine(audioPacksPath, "HOW_TO_CREATE_AUDIO_PACKS.txt");
                 if (!File.Exists(instructionFilePath))
                 {
-                    // Create a new AudioPackManager instance to generate the instruction file
                     var tempManager = new AudioPackManager();
                 }
             }
             catch
             {
-                // Silently fail - instruction file is optional
             }
 
             // Open the folder in Windows Explorer
