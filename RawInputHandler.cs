@@ -147,7 +147,6 @@ public class RawInputHandler
         _selectedDeviceHandle = null;
     }
 
-    // MINIMAL VERSION - Just get device handles and types, no detailed info
     public List<DeviceInfo> EnumerateDevices()
     {
         var devices = new List<DeviceInfo>();

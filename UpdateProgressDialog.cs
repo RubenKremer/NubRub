@@ -65,22 +65,66 @@ public partial class UpdateProgressDialog : Form
 
     public void SetStatus(string status)
     {
-        if (this.InvokeRequired)
+        if (this.IsDisposed || !this.IsHandleCreated)
         {
-            this.Invoke(new Action<string>(SetStatus), status);
             return;
         }
+
+        if (this.InvokeRequired)
+        {
+            try
+            {
+                this.Invoke(new Action<string>(SetStatus), status);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Form was disposed, ignore
+            }
+            catch (InvalidOperationException)
+            {
+                // Handle is invalid, ignore
+            }
+            return;
+        }
+        
+        if (this.IsDisposed || _statusLabel == null || _statusLabel.IsDisposed)
+        {
+            return;
+        }
+        
         _statusLabel.Text = status;
         Application.DoEvents();
     }
 
     public void SetProgress(int percent)
     {
-        if (this.InvokeRequired)
+        if (this.IsDisposed || !this.IsHandleCreated)
         {
-            this.Invoke(new Action<int>(SetProgress), percent);
             return;
         }
+
+        if (this.InvokeRequired)
+        {
+            try
+            {
+                this.Invoke(new Action<int>(SetProgress), percent);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Form was disposed, ignore
+            }
+            catch (InvalidOperationException)
+            {
+                // Handle is invalid, ignore
+            }
+            return;
+        }
+        
+        if (this.IsDisposed || _progressBar == null || _progressBar.IsDisposed)
+        {
+            return;
+        }
+        
         _progressBar.Style = ProgressBarStyle.Continuous;
         _progressBar.Value = Math.Clamp(percent, 0, 100);
         Application.DoEvents();
@@ -88,9 +132,30 @@ public partial class UpdateProgressDialog : Form
 
     public void SetProgress(long bytesDownloaded, long totalBytes)
     {
+        if (this.IsDisposed || !this.IsHandleCreated)
+        {
+            return;
+        }
+
         if (this.InvokeRequired)
         {
-            this.Invoke(new Action<long, long>(SetProgress), bytesDownloaded, totalBytes);
+            try
+            {
+                this.Invoke(new Action<long, long>(SetProgress), bytesDownloaded, totalBytes);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Form was disposed, ignore
+            }
+            catch (InvalidOperationException)
+            {
+                // Handle is invalid, ignore
+            }
+            return;
+        }
+        
+        if (this.IsDisposed || _progressBar == null || _progressBar.IsDisposed || _statusLabel == null || _statusLabel.IsDisposed)
+        {
             return;
         }
         

@@ -37,7 +37,6 @@ public partial class MainForm : Form
         {
             var assembly = Assembly.GetExecutingAssembly();
             
-            // Try to load ICO file first
             var icoStream = assembly.GetManifestResourceStream("NubRub.Resources.icons.appicon.ico");
             if (icoStream != null)
             {

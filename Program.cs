@@ -24,13 +24,11 @@ static class Program
     [STAThread]
     static void Main(string[] args)
     {
-        // Ensure only one instance is running
         bool createdNew;
                 using (var mutex = new Mutex(true, "NubRub_SingleInstance", out createdNew))
         {
             if (!createdNew)
             {
-                // Another instance is already running
                 MessageBox.Show(
                     "NubRub is already running.\n\nCheck the system tray for the NubRub icon.",
                     "NubRub - Already Running",
@@ -250,9 +248,6 @@ static class Program
             List<DeviceInfo> availableDevices;
             try
             {
-                _debugWindow?.Log("Calling EnumerateDevices()...");
-                _debugWindow?.Log("Step 1: Creating RawInputHandler instance...");
-                
                 if (_rawInputHandler == null)
                 {
                     _debugWindow?.Log("ERROR: RawInputHandler is null!");
@@ -260,14 +255,9 @@ static class Program
                 }
                 else
                 {
-                    _debugWindow?.Log("Step 2: RawInputHandler exists, calling EnumerateDevices()...");
-                    _debugWindow?.Log($"RawInputHandler type: {_rawInputHandler.GetType().Name}");
-                    _debugWindow?.Log($"RawInputHandler is null: {_rawInputHandler == null}");
-                    
                     try
                     {
-                        _debugWindow?.Log("About to call EnumerateDevices() method...");
-                        System.Threading.Thread.Sleep(50); // Small delay
+                        System.Threading.Thread.Sleep(50);
                         Application.DoEvents();
                         
                         if (_rawInputHandler == null)
@@ -1578,7 +1568,8 @@ static class Program
             {
                 var processStartInfo = new ProcessStartInfo
                 {
-                    FileName = installerPath,
+                    FileName = "msiexec.exe",
+                    Arguments = $"/i \"{installerPath}\" /passive",
                     UseShellExecute = true,
                     Verb = "runas" // Request elevation for MSI installer
                 };

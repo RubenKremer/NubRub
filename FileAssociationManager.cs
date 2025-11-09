@@ -107,35 +107,30 @@ public static class FileAssociationManager
     {
         string appDir = AppDomain.CurrentDomain.BaseDirectory;
         
-        // Priority 1: nubrub.ico in Resources/icons (preferred for .nubrub files)
         string nubrubIconPath = Path.Combine(appDir, "Resources", "icons", "nubrub.ico");
         if (File.Exists(nubrubIconPath))
         {
             return nubrubIconPath;
         }
         
-        // Priority 2: nubrub.ico in app directory
         string nubrubIconPath2 = Path.Combine(appDir, "nubrub.ico");
         if (File.Exists(nubrubIconPath2))
         {
             return nubrubIconPath2;
         }
         
-        // Priority 3: appicon.ico in Resources/icons
         string appIconPath = Path.Combine(appDir, "Resources", "icons", "appicon.ico");
         if (File.Exists(appIconPath))
         {
             return appIconPath;
         }
         
-        // Priority 4: appicon.ico in app directory
         string appIconPath2 = Path.Combine(appDir, "appicon.ico");
         if (File.Exists(appIconPath2))
         {
             return appIconPath2;
         }
         
-        // Fallback to application executable icon
         return Application.ExecutablePath;
     }
 }

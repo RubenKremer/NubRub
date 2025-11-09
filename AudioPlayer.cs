@@ -13,17 +13,17 @@ public class AudioPlayer : IDisposable
     private List<AudioFileReader> _triggerReaders = new();
     private System.Timers.Timer? _idleTimer;
     private bool _isPlaying;
-    private bool _hasRecentMovement = false; // Track if there's been recent movement
+    private bool _hasRecentMovement = false;
     private bool _isInitialized = false;
-    private bool _isInCooldown = false; // Track if we're in cooldown period after trigger
-    private bool _isEnabled = true; // Track if AudioPlayer is enabled (can respond to movement)
+    private bool _isInCooldown = false;
+    private bool _isEnabled = true;
     private double _volume = 0.6;
     private int _idleCutoffMs = 250;
     private string _audioPack = "squeak";
     private AudioPackManager? _packManager;
     private Random _random = new();
-    private const int STARTUP_DELAY_MS = 1000; // Prevent audio for 1 second after initialization
-    private const int TRIGGER_COOLDOWN_MS = 5000; // 5 seconds cooldown after trigger sound
+    private const int STARTUP_DELAY_MS = 1000;
+    private const int TRIGGER_COOLDOWN_MS = 5000;
 
     public event EventHandler? TriggerSoundCompleted;
 
