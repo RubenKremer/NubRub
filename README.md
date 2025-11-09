@@ -9,6 +9,7 @@ A Windows 11 system tray application that plays squeaky sounds when the TrackPoi
 - **25-second wiggle detection**: After 25 seconds of continuous movement (with <2s breaks allowed), plays a distinct trigger sound
 - **System tray integration**: Runs minimized in the system tray
 - **Configuration panel**: Easy device selection and settings adjustment
+- **Audio Pack Management**: Create, edit, export, import, and delete custom audio packs with a built-in wizard
 - **No driver required**: Pure user-mode application
 
 ## Requirements
@@ -91,5 +92,14 @@ Settings include:
 
 ## Audio Files
 
-The application includes built-in audio packs. Custom audio packs can be added to `%LOCALAPPDATA%\NubRub\AudioPacks\`. See `CUSTOM_AUDIO_PACKS.md` for details.
+The application includes built-in audio packs (Squeak, NSFW, Bugs, Glass). Custom audio packs can be created and managed using the built-in wizard:
+
+**Audio Pack Management** (Right-click tray icon → **Audio Pack Management**):
+- **Create...** - Create new audio packs with a step-by-step wizard
+- **Edit...** - Edit existing packs (update or save as new)
+- **Export...** - Export packs to `.nubrub` files for sharing
+- **Import...** - Import `.nubrub` files to add packs
+- **Delete...** - Delete custom packs (with confirmation)
+
+Custom audio packs can also be created manually by editing JSON files in `%LOCALAPPDATA%\NubRub\AudioPacks\`. See `CUSTOM_AUDIO_PACKS.md` for detailed instructions.
 
