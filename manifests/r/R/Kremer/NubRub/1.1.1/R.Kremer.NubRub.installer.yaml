@@ -1,0 +1,22 @@
+# Created using update-manifest.ps1
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.10.0.schema.json
+
+PackageIdentifier: R.Kremer.NubRub
+PackageVersion: 1.1.1
+InstallerLocale: en-US
+InstallerType: wix
+Scope: user
+InstallModes:
+- interactive
+- silent
+- silentWithProgress
+InstallerSwitches:
+  Silent: /quiet
+  SilentWithProgress: /qb
+ProductCode: '{5793A615-80DB-482E-9F8B-CBEEAC1CB0CF}'
+Installers:
+- Architecture: x64
+  InstallerUrl: https://github.com/RubenKremer/NubRub/releases/download/v1.1.1/NubRub-1.1.1.msi
+  InstallerSha256: 9A6BFD596CA90EB9D5E90C20E9761551A9F2D1C5F7CABCCE5104DDE6FB465CCB
+ManifestType: installer
+ManifestVersion: 1.10.0
