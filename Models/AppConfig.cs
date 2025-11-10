@@ -38,6 +38,6 @@ public class AudioSettings
 public class StartupSettings
 {
     [JsonProperty("RunAtLogin")]
-    public bool RunAtLogin { get; set; } = false;
+    public bool RunAtLogin { get; set; } = true;
 }
 
