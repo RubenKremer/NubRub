@@ -1,0 +1,15 @@
+{
+  "name": "Bugs",
+  "version": "1.0",
+  "rubsounds": [
+    "bugs-1.wav",
+    "bugs-2.wav",
+    "bugs-3.wav",
+    "bugs-4.wav",
+    "bugs-5.wav"
+  ],
+  "finishsound": [
+    "bugs-trigger.wav"
+  ]
+}
+

@@ -1292,6 +1292,9 @@ static class Program
 
             try
             {
+                // Store the original audio pack for Cancel functionality
+                string originalAudioPack = _config.Audio.AudioPack;
+
                 _configPanel = new ConfigPanel(
                     devices,
                     _config.SelectedDevice,
@@ -1301,6 +1304,16 @@ static class Program
                     _config.Audio.OnlyOnMovement,
                     _config.Audio.Volume,
                     _packManager);
+
+                // Wire up audio pack changed event for test-drive functionality
+                _configPanel.AudioPackChanged += (s, packId) =>
+                {
+                    // Immediately update the audio player to test the selected pack
+                    if (_audioPlayer != null && !string.IsNullOrEmpty(packId))
+                    {
+                        _audioPlayer.AudioPack = packId;
+                    }
+                };
 
                 // Wire up auto-detect event
                 _configPanel.AutoDetectRequested += (s, e) =>
@@ -1348,7 +1361,9 @@ static class Program
                     }
                 };
 
-                if (_configPanel.ShowDialog(_mainForm) == DialogResult.OK)
+                var dialogResult = _configPanel.ShowDialog(_mainForm);
+                
+                if (dialogResult == DialogResult.OK)
                 {
                     // Save settings
                     _config.SelectedDevice = _configPanel.SelectedDevice;
@@ -1382,6 +1397,14 @@ static class Program
                         _wiggleDetector.WiggleDurationMs = _configPanel.WiggleDurationMs;
                     }
                     _trayIcon!.Volume = _config.Audio.Volume;
+                }
+                else if (dialogResult == DialogResult.Cancel)
+                {
+                    // Cancel was clicked - restore the original audio pack
+                    if (_audioPlayer != null)
+                    {
+                        _audioPlayer.AudioPack = originalAudioPack;
+                    }
                 }
             }
             finally

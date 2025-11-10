@@ -1,0 +1,15 @@
+{
+  "name": "Squeak",
+  "version": "1.0",
+  "rubsounds": [
+    "squeak-1.wav",
+    "squeak-2.wav",
+    "squeak-3.wav",
+    "squeak-4.wav",
+    "squeak-5.wav"
+  ],
+  "finishsound": [
+    "squeak-trigger.wav"
+  ]
+}
+

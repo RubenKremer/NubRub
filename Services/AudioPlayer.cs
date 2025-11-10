@@ -1,3 +1,4 @@
+using System.IO;
 using System.Reflection;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -114,15 +115,15 @@ public class AudioPlayer : IDisposable
             var packInfo = _packManager?.GetPack(_audioPack);
             if (packInfo == null)
             {
-                // Fallback to built-in pack loading
-                LoadBuiltInPack(_audioPack);
+                // Fallback to built-in pack loading with hardcoded pattern
+                LoadBuiltInPackFallback(_audioPack);
                 return;
             }
 
             if (packInfo.IsBuiltIn)
             {
-                // Load from embedded resources
-                LoadBuiltInPack(_audioPack);
+                // Load from embedded resources using pack info
+                LoadBuiltInPack(packInfo);
             }
             else
             {
@@ -137,7 +138,76 @@ public class AudioPlayer : IDisposable
         }
     }
 
-    private void LoadBuiltInPack(string packId)
+    private void LoadBuiltInPack(AudioPackInfo packInfo)
+    {
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            string packPrefix = packInfo.PackId;
+
+            // Load rub sounds (movement sounds) from embedded resources
+            foreach (var fileName in packInfo.RubSounds)
+            {
+                try
+                {
+                    string resourceName = $"NubRub.Resources.sounds.{packPrefix}.{fileName}";
+                    var resourceStream = assembly.GetManifestResourceStream(resourceName);
+                    if (resourceStream != null)
+                    {
+                        // Save to temp file since AudioFileReader needs a file path
+                        string tempFile = Path.Combine(Path.GetTempPath(), $"NubRub_{packPrefix}_{fileName}");
+                        using (var fileStream = File.Create(tempFile))
+                        {
+                            resourceStream.CopyTo(fileStream);
+                        }
+                        var reader = new AudioFileReader(tempFile);
+                        reader.Volume = (float)_volume;
+                        _squeakReaders.Add(reader);
+                    }
+                }
+                catch
+                {
+                    // Skip invalid audio files
+                    continue;
+                }
+            }
+
+            // Load finish sounds (trigger sounds) from embedded resources
+            foreach (var fileName in packInfo.FinishSounds)
+            {
+                try
+                {
+                    string resourceName = $"NubRub.Resources.sounds.{packPrefix}.{fileName}";
+                    var resourceStream = assembly.GetManifestResourceStream(resourceName);
+                    if (resourceStream != null)
+                    {
+                        // Save to temp file since AudioFileReader needs a file path
+                        string tempFile = Path.Combine(Path.GetTempPath(), $"NubRub_{packPrefix}_{fileName}");
+                        using (var fileStream = File.Create(tempFile))
+                        {
+                            resourceStream.CopyTo(fileStream);
+                        }
+                        var reader = new AudioFileReader(tempFile);
+                        reader.Volume = (float)_volume;
+                        _triggerReaders.Add(reader);
+                    }
+                }
+                catch
+                {
+                    // Skip invalid audio files
+                    continue;
+                }
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    /// <summary>
+    /// Fallback method for loading built-in packs with hardcoded pattern (used when pack.json is missing).
+    /// </summary>
+    private void LoadBuiltInPackFallback(string packId)
     {
         try
         {

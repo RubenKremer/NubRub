@@ -1,0 +1,16 @@
+{
+  "name": "Glass",
+  "version": "1.1",
+  "rubsounds": [
+    "glass-1.wav",
+    "glass-2.wav",
+    "glass-3.wav",
+    "glass-4.wav",
+    "glass-5.wav",
+    "glass-6.wav"
+  ],
+  "finishsound": [
+    "glass-trigger.wav"
+  ]
+}
+

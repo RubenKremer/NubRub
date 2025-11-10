@@ -5,6 +5,8 @@ using NubRub.Services;
 
 namespace NubRub.UI;
 
+public delegate void AudioPackChangedEventHandler(object sender, string packId);
+
 public partial class ConfigPanel : Form
 {
     private ComboBox _deviceComboBox = null!;
@@ -19,8 +21,10 @@ public partial class ConfigPanel : Form
     private Button _saveButton = null!;
     private Button _cancelButton = null!;
     private AudioPackManager? _packManager;
+    private string _originalAudioPack = "squeak";
 
     public event EventHandler? AutoDetectRequested;
+    public event AudioPackChangedEventHandler? AudioPackChanged;
 
     public DeviceInfo? SelectedDevice { get; private set; }
     public string AudioPack { get; private set; } = "squeak";
@@ -32,6 +36,7 @@ public partial class ConfigPanel : Form
     public ConfigPanel(List<DeviceInfo> devices, DeviceInfo? currentDevice, string audioPack, int idleCutoffMs, int wiggleDurationMs, bool onlyOnMovement, double volume, AudioPackManager? packManager = null)
     {
         _packManager = packManager ?? new AudioPackManager();
+        _originalAudioPack = audioPack; // Store original pack for Cancel functionality
         InitializeComponent();
         PopulateDevices(devices, currentDevice);
         PopulateAudioPacks(audioPack);
@@ -100,6 +105,7 @@ public partial class ConfigPanel : Form
             Width = 340, // Reduced width to make room for button
             DropDownStyle = ComboBoxStyle.DropDownList
         };
+        _audioPackComboBox.SelectedIndexChanged += (s, e) => OnAudioPackSelectionChanged();
         this.Controls.Add(_audioPackComboBox);
 
         _openAudioPacksFolderButton = new Button
@@ -354,28 +360,72 @@ public partial class ConfigPanel : Form
         SelectedDevice = _deviceComboBox.SelectedItem as DeviceInfo;
         
         // Extract pack ID from selected item
-        var selectedItem = _audioPackComboBox.SelectedItem;
-        if (selectedItem != null)
-        {
-            var packIdProperty = selectedItem.GetType().GetProperty("PackId");
-            if (packIdProperty != null)
-            {
-                AudioPack = packIdProperty.GetValue(selectedItem)?.ToString() ?? "squeak";
-            }
-            else
-            {
-                AudioPack = selectedItem.ToString() ?? "squeak";
-            }
-        }
-        else
-        {
-            AudioPack = "squeak";
-        }
+        AudioPack = GetSelectedAudioPackId();
         
         IdleCutoffMs = (int)_idleCutoffNumeric.Value;
         WiggleDurationMs = (int)(_wiggleDurationNumeric.Value * 1000); // Convert seconds to milliseconds
         OnlyOnMovement = _onlyOnMovementCheckBox.Checked;
         Volume = _volumeTrackBar.Value / 100.0;
     }
+
+    /// <summary>
+    /// Gets the currently selected audio pack ID from the combo box.
+    /// </summary>
+    private string GetSelectedAudioPackId()
+    {
+        var selectedItem = _audioPackComboBox.SelectedItem;
+        if (selectedItem != null)
+        {
+            var packIdProperty = selectedItem.GetType().GetProperty("PackId");
+            if (packIdProperty != null)
+            {
+                return packIdProperty.GetValue(selectedItem)?.ToString() ?? "squeak";
+            }
+            else
+            {
+                return selectedItem.ToString() ?? "squeak";
+            }
+        }
+        return "squeak";
+    }
+
+    /// <summary>
+    /// Handles the audio pack combo box selection change event.
+    /// Fires the AudioPackChanged event to allow immediate testing.
+    /// </summary>
+    private void OnAudioPackSelectionChanged()
+    {
+        string selectedPackId = GetSelectedAudioPackId();
+        AudioPackChanged?.Invoke(this, selectedPackId);
+    }
+
+    /// <summary>
+    /// Restores the original audio pack selection (for Cancel functionality).
+    /// </summary>
+    public void RestoreOriginalAudioPack()
+    {
+        // Find and select the original pack in the combo box
+        for (int i = 0; i < _audioPackComboBox.Items.Count; i++)
+        {
+            var item = _audioPackComboBox.Items[i];
+            if (item == null) continue;
+            
+            var packIdProperty = item.GetType().GetProperty("PackId");
+            if (packIdProperty != null)
+            {
+                string? packId = packIdProperty.GetValue(item)?.ToString();
+                if (packId != null && packId.Equals(_originalAudioPack, StringComparison.OrdinalIgnoreCase))
+                {
+                    _audioPackComboBox.SelectedIndex = i;
+                    return;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the original audio pack ID that was set when the dialog was opened.
+    /// </summary>
+    public string OriginalAudioPack => _originalAudioPack;
 }
 

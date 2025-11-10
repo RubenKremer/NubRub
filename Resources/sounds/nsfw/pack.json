@@ -1,0 +1,15 @@
+{
+  "name": "NSFW",
+  "version": "1.0",
+  "rubsounds": [
+    "nsfw-1.wav",
+    "nsfw-2.wav",
+    "nsfw-3.wav",
+    "nsfw-4.wav",
+    "nsfw-5.wav"
+  ],
+  "finishsound": [
+    "nsfw-trigger.wav"
+  ]
+}
+

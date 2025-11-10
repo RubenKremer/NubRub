@@ -35,6 +35,7 @@
     <!-- Audio pack files - all files are optional (Condition="Exists(...)") -->
     <!-- Missing files are skipped gracefully at runtime -->
     <!-- Audio pack files - squeak pack -->
+    <EmbeddedResource Include="Resources\sounds\squeak\pack.json" Condition="Exists('Resources\sounds\squeak\pack.json')" />
     <EmbeddedResource Include="Resources\sounds\squeak\squeak-1.wav" Condition="Exists('Resources\sounds\squeak\squeak-1.wav')" />
     <EmbeddedResource Include="Resources\sounds\squeak\squeak-2.wav" Condition="Exists('Resources\sounds\squeak\squeak-2.wav')" />
     <EmbeddedResource Include="Resources\sounds\squeak\squeak-3.wav" Condition="Exists('Resources\sounds\squeak\squeak-3.wav')" />
@@ -43,6 +44,7 @@
     <EmbeddedResource Include="Resources\sounds\squeak\squeak-6.wav" Condition="Exists('Resources\sounds\squeak\squeak-6.wav')" />
     <EmbeddedResource Include="Resources\sounds\squeak\squeak-trigger.wav" Condition="Exists('Resources\sounds\squeak\squeak-trigger.wav')" />
     <!-- Audio pack files - nsfw pack -->
+    <EmbeddedResource Include="Resources\sounds\nsfw\pack.json" Condition="Exists('Resources\sounds\nsfw\pack.json')" />
     <EmbeddedResource Include="Resources\sounds\nsfw\nsfw-1.wav" Condition="Exists('Resources\sounds\nsfw\nsfw-1.wav')" />
     <EmbeddedResource Include="Resources\sounds\nsfw\nsfw-2.wav" Condition="Exists('Resources\sounds\nsfw\nsfw-2.wav')" />
     <EmbeddedResource Include="Resources\sounds\nsfw\nsfw-3.wav" Condition="Exists('Resources\sounds\nsfw\nsfw-3.wav')" />
@@ -51,6 +53,7 @@
     <EmbeddedResource Include="Resources\sounds\nsfw\nsfw-6.wav" Condition="Exists('Resources\sounds\nsfw\nsfw-6.wav')" />
     <EmbeddedResource Include="Resources\sounds\nsfw\nsfw-trigger.wav" Condition="Exists('Resources\sounds\nsfw\nsfw-trigger.wav')" />
     <!-- Audio pack files - bugs pack -->
+    <EmbeddedResource Include="Resources\sounds\bugs\pack.json" Condition="Exists('Resources\sounds\bugs\pack.json')" />
     <EmbeddedResource Include="Resources\sounds\bugs\bugs-1.wav" Condition="Exists('Resources\sounds\bugs\bugs-1.wav')" />
     <EmbeddedResource Include="Resources\sounds\bugs\bugs-2.wav" Condition="Exists('Resources\sounds\bugs\bugs-2.wav')" />
     <EmbeddedResource Include="Resources\sounds\bugs\bugs-3.wav" Condition="Exists('Resources\sounds\bugs\bugs-3.wav')" />
@@ -59,6 +62,7 @@
     <EmbeddedResource Include="Resources\sounds\bugs\bugs-6.wav" Condition="Exists('Resources\sounds\bugs\bugs-6.wav')" />
     <EmbeddedResource Include="Resources\sounds\bugs\bugs-trigger.wav" Condition="Exists('Resources\sounds\bugs\bugs-trigger.wav')" />
     <!-- Audio pack files - glass pack -->
+    <EmbeddedResource Include="Resources\sounds\glass\pack.json" Condition="Exists('Resources\sounds\glass\pack.json')" />
     <EmbeddedResource Include="Resources\sounds\glass\glass-1.wav" Condition="Exists('Resources\sounds\glass\glass-1.wav')" />
     <EmbeddedResource Include="Resources\sounds\glass\glass-2.wav" Condition="Exists('Resources\sounds\glass\glass-2.wav')" />
     <EmbeddedResource Include="Resources\sounds\glass\glass-3.wav" Condition="Exists('Resources\sounds\glass\glass-3.wav')" />

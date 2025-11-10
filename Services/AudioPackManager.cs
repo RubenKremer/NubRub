@@ -1,5 +1,6 @@
 using System.IO;
 using System.IO.Compression;
+using System.Reflection;
 using System.Text;
 using NubRub.Models;
 using Newtonsoft.Json;
@@ -19,13 +20,7 @@ public class AudioPackManager
     private static readonly string[] ALLOWED_EXTENSIONS = { ".wav" }; // Only WAV files allowed
 
     private readonly string _audioPacksPath;
-    private readonly List<AudioPackInfo> _builtInPacks = new()
-    {
-        new AudioPackInfo { Name = "Squeak", PackId = "squeak", IsBuiltIn = true },
-        new AudioPackInfo { Name = "NSFW", PackId = "nsfw", IsBuiltIn = true },
-        new AudioPackInfo { Name = "Bugs", PackId = "bugs", IsBuiltIn = true },
-        new AudioPackInfo { Name = "Glass", PackId = "glass", IsBuiltIn = true }
-    };
+    private List<AudioPackInfo>? _builtInPacks;
 
     /// <summary>
     /// Gets the full path to the audio packs directory.
@@ -47,6 +42,9 @@ public class AudioPackManager
         catch
         {
         }
+        
+        // Load built-in packs from embedded resources
+        LoadBuiltInPacks();
     }
 
     /// <summary>
@@ -183,7 +181,7 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
     /// </summary>
     public List<AudioPackInfo> GetAllPacks()
     {
-        var packs = new List<AudioPackInfo>(_builtInPacks);
+        var packs = new List<AudioPackInfo>(GetBuiltInPacks());
         
         // Load custom packs from file system
         try
@@ -206,7 +204,7 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
     /// </summary>
     public AudioPackInfo? GetPack(string packId)
     {
-        var builtIn = _builtInPacks.FirstOrDefault(p => p.PackId.Equals(packId, StringComparison.OrdinalIgnoreCase));
+        var builtIn = GetBuiltInPacks().FirstOrDefault(p => p.PackId.Equals(packId, StringComparison.OrdinalIgnoreCase));
         if (builtIn != null)
             return builtIn;
 
@@ -223,6 +221,86 @@ For more information, see the CUSTOM_AUDIO_PACKS.md file in the application dire
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Gets the list of built-in packs, loading them from embedded resources if needed.
+    /// </summary>
+    private List<AudioPackInfo> GetBuiltInPacks()
+    {
+        if (_builtInPacks != null)
+            return _builtInPacks;
+        
+        _builtInPacks = new List<AudioPackInfo>();
+        return _builtInPacks;
+    }
+
+    /// <summary>
+    /// Loads built-in audio packs from embedded resources (pack.json files).
+    /// </summary>
+    private void LoadBuiltInPacks()
+    {
+        _builtInPacks = new List<AudioPackInfo>();
+        
+        // List of built-in pack IDs
+        string[] builtInPackIds = { "squeak", "nsfw", "bugs", "glass" };
+        
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            
+            foreach (var packId in builtInPackIds)
+            {
+                try
+                {
+                    // Try to load pack.json from embedded resources
+                    string resourceName = $"NubRub.Resources.sounds.{packId}.pack.json";
+                    using Stream? resourceStream = assembly.GetManifestResourceStream(resourceName);
+                    
+                    if (resourceStream != null)
+                    {
+                        using var reader = new StreamReader(resourceStream, Encoding.UTF8);
+                        string jsonContent = reader.ReadToEnd();
+                        
+                        if (jsonContent.Length > 100 * 1024) // Max 100 KB for JSON
+                        {
+                            continue; // Skip oversized JSON files
+                        }
+                        
+                        var packInfo = JsonConvert.DeserializeObject<AudioPackInfo>(jsonContent);
+                        if (packInfo != null)
+                        {
+                            packInfo.PackId = packId;
+                            packInfo.IsBuiltIn = true;
+                            _builtInPacks.Add(packInfo);
+                        }
+                    }
+                    else
+                    {
+                        // Fallback: Create a basic pack info if pack.json doesn't exist
+                        var fallbackPack = new AudioPackInfo
+                        {
+                            Name = packId.Substring(0, 1).ToUpperInvariant() + packId.Substring(1),
+                            PackId = packId,
+                            IsBuiltIn = true,
+                            Version = "1.0"
+                        };
+                        _builtInPacks.Add(fallbackPack);
+                    }
+                }
+                catch
+                {
+                    // Skip invalid packs - continue with next pack
+                    continue;
+                }
+            }
+        }
+        catch
+        {
+            // If loading fails, ensure we have at least an empty list
+            if (_builtInPacks == null)
+                _builtInPacks = new List<AudioPackInfo>();
+        }
     }
 
     /// <summary>
