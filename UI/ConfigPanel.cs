@@ -12,6 +12,7 @@ public partial class ConfigPanel : Form
     private ComboBox _audioPackComboBox = null!;
     private Button _openAudioPacksFolderButton = null!;
     private NumericUpDown _idleCutoffNumeric = null!;
+    private NumericUpDown _wiggleDurationNumeric = null!;
     private CheckBox _onlyOnMovementCheckBox = null!;
     private TrackBar _volumeTrackBar = null!;
     private Label _volumeLabel = null!;
@@ -24,16 +25,18 @@ public partial class ConfigPanel : Form
     public DeviceInfo? SelectedDevice { get; private set; }
     public string AudioPack { get; private set; } = "squeak";
     public int IdleCutoffMs { get; private set; }
+    public int WiggleDurationMs { get; private set; }
     public bool OnlyOnMovement { get; private set; }
     public double Volume { get; private set; }
 
-    public ConfigPanel(List<DeviceInfo> devices, DeviceInfo? currentDevice, string audioPack, int idleCutoffMs, bool onlyOnMovement, double volume, AudioPackManager? packManager = null)
+    public ConfigPanel(List<DeviceInfo> devices, DeviceInfo? currentDevice, string audioPack, int idleCutoffMs, int wiggleDurationMs, bool onlyOnMovement, double volume, AudioPackManager? packManager = null)
     {
         _packManager = packManager ?? new AudioPackManager();
         InitializeComponent();
         PopulateDevices(devices, currentDevice);
         PopulateAudioPacks(audioPack);
         _idleCutoffNumeric.Value = idleCutoffMs;
+        _wiggleDurationNumeric.Value = wiggleDurationMs / 1000; // Convert milliseconds to seconds
         _onlyOnMovementCheckBox.Checked = onlyOnMovement;
         _volumeTrackBar.Value = (int)(volume * 100);
         UpdateVolumeLabel();
@@ -111,7 +114,7 @@ public partial class ConfigPanel : Form
         this.Controls.Add(_openAudioPacksFolderButton);
         y += 35;
 
-        // Idle Cutoff
+        // Idle Cutoff (left side)
         var idleLabel = new Label
         {
             Text = "Idle Cutoff (ms):",
@@ -119,6 +122,15 @@ public partial class ConfigPanel : Form
             AutoSize = true
         };
         this.Controls.Add(idleLabel);
+
+        // Trigger Timer (right side)
+        var wiggleDurationLabel = new Label
+        {
+            Text = "Trigger Timer (seconds):",
+            Location = new Point(260, y),
+            AutoSize = true
+        };
+        this.Controls.Add(wiggleDurationLabel);
         y += 25;
 
         _idleCutoffNumeric = new NumericUpDown
@@ -130,6 +142,17 @@ public partial class ConfigPanel : Form
             Value = 250
         };
         this.Controls.Add(_idleCutoffNumeric);
+
+        _wiggleDurationNumeric = new NumericUpDown
+        {
+            Location = new Point(260, y),
+            Width = 100,
+            Minimum = 1,
+            Maximum = 300,
+            Value = 25,
+            DecimalPlaces = 0
+        };
+        this.Controls.Add(_wiggleDurationNumeric);
         y += 35;
 
         // Only on Movement
@@ -350,6 +373,7 @@ public partial class ConfigPanel : Form
         }
         
         IdleCutoffMs = (int)_idleCutoffNumeric.Value;
+        WiggleDurationMs = (int)(_wiggleDurationNumeric.Value * 1000); // Convert seconds to milliseconds
         OnlyOnMovement = _onlyOnMovementCheckBox.Checked;
         Volume = _volumeTrackBar.Value / 100.0;
     }

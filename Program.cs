@@ -58,7 +58,7 @@ static class Program
                 IdleCutoffMs = _config.Audio.IdleCutoffMs
             };
 
-            _wiggleDetector = new WiggleDetector();
+            _wiggleDetector = new WiggleDetector(_config.Audio.WiggleDurationMs);
             _wiggleDetector.WiggleDetected += OnWiggleDetected;
 
             _trayIcon = new TrayIcon
@@ -412,7 +412,8 @@ static class Program
     private static void OnWiggleDetected(object? sender, EventArgs e)
     {
         // Stop squeak, play trigger sound, then execute tel: link
-        _debugWindow?.LogWiggle("45 seconds of continuous wiggling detected!");
+        int durationSeconds = _wiggleDetector != null ? _wiggleDetector.WiggleDurationMs / 1000 : 25;
+        _debugWindow?.LogWiggle($"{durationSeconds} seconds of continuous wiggling detected!");
         _audioPlayer?.StopSqueak();
         _audioPlayer?.PlayTriggerSound();
         _debugWindow?.LogAudio("Playing trigger sound...");
@@ -428,7 +429,8 @@ static class Program
         
         // Reset wiggle detector
         _wiggleDetector?.Reset();
-        _debugWindow?.LogWiggle("Wiggle detector reset - ready for next 25s cycle");
+        int durationSeconds = _wiggleDetector != null ? _wiggleDetector.WiggleDurationMs / 1000 : 25;
+        _debugWindow?.LogWiggle($"Wiggle detector reset - ready for next {durationSeconds}s cycle");
     }
 
     private static void OnConfigPanelRequested(object? sender, EventArgs e)
@@ -1295,6 +1297,7 @@ static class Program
                     _config.SelectedDevice,
                     _config.Audio.AudioPack,
                     _config.Audio.IdleCutoffMs,
+                    _config.Audio.WiggleDurationMs,
                     _config.Audio.OnlyOnMovement,
                     _config.Audio.Volume,
                     _packManager);
@@ -1351,6 +1354,7 @@ static class Program
                     _config.SelectedDevice = _configPanel.SelectedDevice;
                     _config.Audio.AudioPack = _configPanel.AudioPack;
                     _config.Audio.IdleCutoffMs = _configPanel.IdleCutoffMs;
+                    _config.Audio.WiggleDurationMs = _configPanel.WiggleDurationMs;
                     _config.Audio.OnlyOnMovement = _configPanel.OnlyOnMovement;
                     _config.Audio.Volume = _configPanel.Volume;
 
@@ -1372,6 +1376,10 @@ static class Program
                         _audioPlayer.AudioPack = _configPanel.AudioPack;
                         _audioPlayer.Volume = _configPanel.Volume;
                         _audioPlayer.IdleCutoffMs = _configPanel.IdleCutoffMs;
+                    }
+                    if (_wiggleDetector != null)
+                    {
+                        _wiggleDetector.WiggleDurationMs = _configPanel.WiggleDurationMs;
                     }
                     _trayIcon!.Volume = _config.Audio.Volume;
                 }

@@ -30,6 +30,9 @@ public class AudioSettings
 
     [JsonProperty("AudioPack")]
     public string AudioPack { get; set; } = "squeak";
+
+    [JsonProperty("WiggleDurationMs")]
+    public int WiggleDurationMs { get; set; } = 25000;
 }
 
 public class StartupSettings

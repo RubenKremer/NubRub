@@ -5,20 +5,34 @@ public class WiggleDetector
     private System.Timers.Timer? _wiggleTimer;
     private System.Timers.Timer? _pauseTimer;
     private bool _isWiggling;
-    private const int WIGGLE_DURATION_MS = 25000; // 25 seconds
+    private int _wiggleDurationMs;
     private const int PAUSE_THRESHOLD_MS = 2000; // 2 seconds
 
     public event EventHandler? WiggleDetected;
 
-    public WiggleDetector()
+    public WiggleDetector(int wiggleDurationMs = 25000)
     {
-        _wiggleTimer = new System.Timers.Timer(WIGGLE_DURATION_MS);
+        _wiggleDurationMs = wiggleDurationMs;
+        _wiggleTimer = new System.Timers.Timer(_wiggleDurationMs);
         _wiggleTimer.Elapsed += (s, e) => OnWiggleDetected();
         _wiggleTimer.AutoReset = false;
 
         _pauseTimer = new System.Timers.Timer(PAUSE_THRESHOLD_MS);
         _pauseTimer.Elapsed += (s, e) => OnPauseDetected();
         _pauseTimer.AutoReset = false;
+    }
+
+    public int WiggleDurationMs
+    {
+        get => _wiggleDurationMs;
+        set
+        {
+            _wiggleDurationMs = value;
+            if (_wiggleTimer != null)
+            {
+                _wiggleTimer.Interval = _wiggleDurationMs;
+            }
+        }
     }
 
     public void OnMovement()
@@ -44,7 +58,7 @@ public class WiggleDetector
 
     private void OnWiggleDetected()
     {
-        // 25 seconds of continuous wiggling detected
+        // Continuous wiggling detected after configured duration
         _isWiggling = false;
         _wiggleTimer?.Stop();
         _pauseTimer?.Stop();
