@@ -144,8 +144,9 @@ public class AudioPlayer : IDisposable
             var assembly = Assembly.GetExecutingAssembly();
             string packPrefix = packId;
 
-            // Load squeak sounds (1-5) from embedded resources
-            for (int i = 1; i <= 5; i++)
+            // Load squeak sounds (up to 6) from embedded resources
+            // Missing files are skipped gracefully
+            for (int i = 1; i <= 6; i++)
             {
                 string resourceName = $"NubRub.Resources.sounds.{packPrefix}.{packPrefix}-{i}.wav";
                 var squeakResource = assembly.GetManifestResourceStream(resourceName);
