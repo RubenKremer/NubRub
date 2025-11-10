@@ -1601,10 +1601,11 @@ static class Program
             // Launch the installer
             try
             {
+                // Pass LAUNCHAPP=1 property to auto-restart the app after update installation
                 var processStartInfo = new ProcessStartInfo
                 {
                     FileName = "msiexec.exe",
-                    Arguments = $"/i \"{installerPath}\" /passive",
+                    Arguments = $"/i \"{installerPath}\" /passive LAUNCHAPP=1",
                     UseShellExecute = true,
                     Verb = "runas" // Request elevation for MSI installer
                 };

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- WiX v6 (v4+ schema) installer authoring for NubRub
-     Build with: wix build NubRub.wxs -ext WixToolset.UI.wixext -o NubRub.msi -->
+     Build with: wix build NubRub.wxs -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o NubRub.msi -->
 
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
-     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
 
   <Package
       Name="NubRub"
@@ -12,13 +13,16 @@
       UpgradeCode="26403662-5690-4011-9e9e-1a411767646b"
       Scope="perUser">
 
+    <!-- Property to control whether to launch the app after installation (default: yes) -->
+    <Property Id="LAUNCHAPP" Value="1" />
+
     <!-- Major upgrades & media -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of NubRub is already installed." />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
     <!-- Built-in MSI UI (requires -ext WixToolset.UI.wixext) -->
-    <!-- WixUI_Mondo includes license agreement page -->
-    <ui:WixUI Id="WixUI_Mondo" InstallDirectory="INSTALLFOLDER" />
+    <!-- WixUI_InstallDir includes license agreement but no setup type selection -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
 
     <WixVariable Id="WixUIBannerBmp" Value="resources\banner.bmp" />
     <WixVariable Id="WixUIDialogBmp" Value="resources\dialog.bmp" />
@@ -83,5 +87,28 @@
       <ComponentRef Id="DesktopShortcut" />
     </Feature>
 
+    <!-- Custom action to launch the application after installation -->
+    <CustomAction Id="LaunchApplication"
+                  FileRef="NubRubExe"
+                  ExeCommand=""
+                  Execute="immediate"
+                  Impersonate="yes"
+                  Return="asyncNoWait" />
+
+    <!-- Schedule the custom action to run after installation completes -->
+    <InstallExecuteSequence>
+      <Custom Action="LaunchApplication" After="InstallFinalize" Condition="LAUNCHAPP = &quot;1&quot; AND NOT REMOVE" />
+    </InstallExecuteSequence>
+
   </Package>
+
+  <!-- Override the finish dialog to launch app -->
+  <Fragment>
+    <UI>
+      <!-- Launch app after Finish button is clicked -->
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication" Order="1" Condition="LAUNCHAPP = &quot;1&quot; AND NOT REMOVE" />
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="2" />
+    </UI>
+  </Fragment>
+
 </Wix>
